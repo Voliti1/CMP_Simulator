@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CMP AI Simulator</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="logo-area">
+                <span class="pulse-indicator green"></span>
+                <h1>CMP AI Simulator</h1>
+            </div>
+            <div class="time-stamp" id="headerClock">2026-07-07 13:21:59</div>
+        </header>
+
+        <!-- Main Dashboard Grid -->
+        <main class="dashboard-grid">
+            
+            <!-- Column 1: Recipe Input & Controls -->
+            <div class="left-column">
+                
+                <!-- Recipe Input -->
+                <section class="card recipe-input-card">
+                    <div class="card-header">
+                        <h2>레시피 입력 (Recipe Input)</h2>
+                    </div>
+                    <div class="card-body">
+                        <form id="recipeForm" onsubmit="event.preventDefault();">
+                            <div class="input-group">
+                                <label for="carrierPressure">
+                                    <span>Carrier Pressure <span class="sub-label">캐리어 가압력</span></span>
+                                    <span class="range-info">정상: 2.0 ~ 6.0</span>
+                                </label>
+                                <div class="input-wrapper">
+                                    <input type="number" id="carrierPressure" step="0.1" min="1.0" max="10.0" value="3.5">
+                                    <span class="unit">psi</span>
+                                </div>
+                            </div>
+
+                            <div class="input-group">
+                                <label for="platenSpeed">
+                                    <span>Platen Speed <span class="sub-label">플래튼 회전속도</span></span>
+                                    <span class="range-info">정상: 30 ~ 120</span>
+                                </label>
+                                <div class="input-wrapper">
+                                    <input type="number" id="platenSpeed" step="1" min="10" max="200" value="60">
+                                    <span class="unit">rpm</span>
+                                </div>
+                            </div>
+
+                            <div class="input-group">
+                                <label for="carrierSpeed">
+                                    <span>Carrier Speed <span class="sub-label">캐리어 회전속도</span></span>
+                                    <span class="range-info">정상: 30 ~ 120</span>
+                                </label>
+                                <div class="input-wrapper">
+                                    <input type="number" id="carrierSpeed" step="1" min="10" max="200" value="60">
+                                    <span class="unit">rpm</span>
+                                </div>
+                            </div>
+
+                            <div class="input-group">
+                                <label for="slurryFlow">
+                                    <span>Slurry Flow Rate <span class="sub-label">슬러리 공급량</span></span>
+                                    <span class="range-info">정상: 100 ~ 300</span>
+                                </label>
+                                <div class="input-wrapper">
+                                    <input type="number" id="slurryFlow" step="1" min="50" max="500" value="200">
+                                    <span class="unit">mL/min</span>
+                                </div>
+                            </div>
+
+                            <div class="input-group">
+                                <label for="condPressure">
+                                    <span>Conditioner Pressure <span class="sub-label">컨디셔너 가압력</span></span>
+                                    <span class="range-info">정상: 2.0 ~ 6.0</span>
+                                </label>
+                                <div class="input-wrapper">
+                                    <input type="number" id="condPressure" step="0.1" min="1.0" max="10.0" value="3.0">
+                                    <span class="unit">psi</span>
+                                </div>
+                            </div>
+
+                            <div class="input-group">
+                                <label for="condSpeed">
+                                    <span>Conditioner Speed <span class="sub-label">컨디셔너 회전속도</span></span>
+                                    <span class="range-info">정상: 40 ~ 120</span>
+                                </label>
+                                <div class="input-wrapper">
+                                    <input type="number" id="condSpeed" step="1" min="20" max="200" value="80">
+                                    <span class="unit">rpm</span>
+                                </div>
+                            </div>
+
+                            <div class="input-group">
+                                <label for="polishTime">
+                                    <span>Polish Time <span class="sub-label">연마 시간</span></span>
+                                    <span class="range-info">정상: 30 ~ 120</span>
+                                </label>
+                                <div class="input-wrapper">
+                                    <input type="number" id="polishTime" step="1" min="10" max="300" value="60">
+                                    <span class="unit">sec</span>
+                                </div>
+                            </div>
+
+                            <button type="button" class="btn btn-secondary btn-full" id="btnRangeInfo">범위 정보</button>
+                        </form>
+                    </div>
+                </section>
+                
+                <!-- Simulation Controls -->
+                <section class="card controls-card">
+                    <div class="card-header">
+                        <h2>공정 제어 (Controls)</h2>
+                    </div>
+                    <div class="card-body controls-body">
+                        <div class="control-actions-vertical">
+                            <button type="button" class="btn btn-primary btn-large btn-full" id="btnSimulate">
+                                <span class="btn-icon">▶</span> 시뮬레이션 실행 (Simulate)
+                            </button>
+                            <button type="button" class="btn btn-success btn-large btn-full" id="btnSaveLog">
+                                <span class="btn-icon">💾</span> 로그 저장 (Save Log)
+                            </button>
+                            <button type="button" class="btn btn-warning btn-large btn-full" id="btnReset">
+                                <span class="btn-icon">🔄</span> 초기화 (Reset)
+                            </button>
+                        </div>
+                        <div class="progress-status-container" style="margin-top: 15px;">
+                            <div class="progress-status-label" id="progressLabel">공정 대기 중</div>
+                            <div class="progress-bar-bg">
+                                <div class="progress-bar-fill" id="progressBarFill" style="width: 0%;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Middle Column: Scenario Distribution, Yield Summary, & Status Display -->
+            <div class="middle-column">
+                
+                <!-- FOUP Scenario Distribution -->
+                <section class="card scenario-select-card">
+                    <div class="card-header">
+                        <h2>FOUP 시나리오 분포 (Scenario Distribution)</h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="distribution-header-controls">
+                            <div class="dist-input-group row-group">
+                                <label for="distTotalWafers">총 웨이퍼 수 (Total Wafers)</label>
+                                <div class="input-wrapper input-wrapper-small" style="width: 100%;">
+                                    <input type="number" id="distTotalWafers" min="1" max="10000" value="25" class="dist-input">
+                                    <span class="unit">장</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="distribution-grid">
+                            <div class="dist-input-group">
+                                <label for="distNormal">정상 (Normal)</label>
+                                <div class="input-wrapper input-wrapper-small">
+                                    <input type="number" id="distNormal" min="0" max="100" value="80" class="dist-input">
+                                    <span class="unit">%</span>
+                                </div>
+                            </div>
+                            <div class="dist-input-group">
+                                <label for="distSlurry">슬러리 주의 (Slurry W)</label>
+                                <div class="input-wrapper input-wrapper-small">
+                                    <input type="number" id="distSlurry" min="0" max="100" value="8" class="dist-input">
+                                    <span class="unit">%</span>
+                                </div>
+                            </div>
+                            <div class="dist-input-group">
+                                <label for="distCond">컨디셔너 주의 (Cond W)</label>
+                                <div class="input-wrapper input-wrapper-small">
+                                    <input type="number" id="distCond" min="0" max="100" value="8" class="dist-input">
+                                    <span class="unit">%</span>
+                                </div>
+                            </div>
+                            <div class="dist-input-group">
+                                <label for="distPressure">압력 위험 (Pressure D)</label>
+                                <div class="input-wrapper input-wrapper-small">
+                                    <input type="number" id="distPressure" min="0" max="100" value="4" class="dist-input">
+                                    <span class="unit">%</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="distribution-total-bar">
+                            <span>선택된 비율 합계: <strong id="distTotalCount">100</strong>% / 100%</span>
+                            <span id="distValidationMsg" class="valid-msg">✓ 비율 일치</span>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Pass & Batch Summary -->
+                <section class="card yield-summary-card">
+                    <div class="card-header">
+                        <h2>FOUP 배치 요약 (Pass Summary)</h2>
+                    </div>
+                    <div class="card-body yield-dashboard">
+                        <div class="yield-stat-item">
+                            <span class="stat-label">총 웨이퍼</span>
+                            <span class="stat-val" id="summaryTotal">25</span>
+                        </div>
+                        <div class="yield-stat-item">
+                            <span class="stat-label text-green">양품 (Pass)</span>
+                            <span class="stat-val text-green" id="summaryGood">0</span>
+                        </div>
+                        <div class="yield-stat-item">
+                            <span class="stat-label text-red">이상제품 (Fail)</span>
+                            <span class="stat-val text-red" id="summaryBad">0</span>
+                        </div>
+                        <div class="yield-stat-item yield-percentage-box">
+                            <span class="stat-label">양품 비율 (Pass Rate)</span>
+                            <span class="stat-val text-glow" id="summaryYield">0.0%</span>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Status Display -->
+                <section class="card status-display-card">
+                    <div class="card-header">
+                        <h2>상태 표시 (Status Display)</h2>
+                    </div>
+                    <div class="card-body status-center">
+                        <div class="status-title">현재 상태</div>
+                        <div class="status-badge ready" id="statusBadge">
+                            <span class="badge-text">READY</span>
+                            <span class="badge-icon">⏳</span>
+                        </div>
+                        <div class="status-explanation" id="statusExplanation">
+                            공정 대기 중입니다. 공정 조건을 설정한 후 시작 버튼을 누르세요.
+                        </div>
+                    </div>
+                </section>
+
+            </div>
+
+            <!-- Column 3: Result Output -->
+            <section class="card result-output-card">
+                <div class="card-header">
+                    <h2>결과 출력 (Result Output)</h2>
+                </div>
+                <div class="card-body result-layout">
+                    <div class="result-text-fields">
+                        <div class="result-field">
+                            <label>Temperature <span class="sub-label">패드 온도</span></label>
+                            <div class="readout-box">
+                                <span class="readout-value" id="resTemp">25.0</span>
+                                <span class="readout-unit">°C</span>
+                            </div>
+                        </div>
+                        <div class="result-field">
+                            <label>Removal Rate <span class="sub-label">연마 속도</span></label>
+                            <div class="readout-box">
+                                <span class="readout-value" id="resRR">0</span>
+                                <span class="readout-unit">Å/min</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="visualizers-container">
+                        <div class="visualizer-item">
+                            <span class="visualizer-label">Uniformity (균일도)</span>
+                            <canvas id="gaugeCanvas" width="460" height="180"></canvas>
+                        </div>
+                        <div class="visualizer-item">
+                            <span class="visualizer-label">실시간 변화 그래프</span>
+                            <canvas id="chartCanvas" width="460" height="220"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+
+        <!-- Log Area -->
+        <section class="card log-card">
+            <div class="card-header">
+                <h2>로그 (Log)</h2>
+            </div>
+            <div class="card-body log-table-container">
+                <table class="log-table" id="logTable">
+                    <thead>
+                        <tr>
+                            <th>Wafer No.</th>
+                            <th>Time</th>
+                            <th>Pressure (psi)</th>
+                            <th>Platen (rpm)</th>
+                            <th>Carrier (rpm)</th>
+                            <th>Slurry (mL/min)</th>
+                            <th>Cond P (psi)</th>
+                            <th>Cond S (rpm)</th>
+                            <th>Time (sec)</th>
+                            <th>Temp (°C)</th>
+                            <th>RR (Å/min)</th>
+                            <th>Uniform (%)</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="logTableBody">
+                        <!-- Log items added dynamically -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Instructions Footer -->
+        <footer class="control-bar-card">
+            <div class="instructions-panel" style="width: 100%; border-right: none; padding-right: 0; padding-bottom: 0; margin-bottom: 0;">
+                <h4>사용 방법</h4>
+                <ol>
+                    <li>설비 입력 조건 및 분포비율(%)을 지정합니다. (합계 100% 필수)</li>
+                    <li>좌측의 <strong>시뮬레이션 실행</strong> 버튼을 눌러 시뮬레이션을 개시합니다.</li>
+                    <li>진행 중 실시간 양품 비율 및 트렌드 변화량을 파악합니다.</li>
+                    <li>완료 후 <strong>로그 저장</strong>을 통해 실행 시점별로 로깅 결과(CSV)를 저장하거나 <strong>초기화</strong>합니다.</li>
+                </ol>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Parameter Range Information Modal -->
+    <div class="modal-overlay" id="rangeModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>CMP 설비 정상 매개변수 범위 정보</h2>
+                <button class="close-modal" id="btnCloseModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="modal-section">
+                    <h3>1. 입력 조건 (Input Ranges)</h3>
+                    <ul>
+                        <li><strong>Carrier Pressure (캐리어 가압력):</strong> 2.0 ~ 6.0 psi</li>
+                        <li><strong>Platen Speed (플래튼 회전속도):</strong> 30 ~ 120 rpm</li>
+                        <li><strong>Carrier Speed (캐리어 회전속도):</strong> 30 ~ 120 rpm</li>
+                        <li><strong>Slurry Flow Rate (슬러리 공급량):</strong> 100 ~ 300 mL/min</li>
+                        <li><strong>Conditioner Pressure (컨디셔너 가압력):</strong> 2.0 ~ 6.0 psi</li>
+                        <li><strong>Conditioner Speed (컨디셔너 회전속도):</strong> 40 ~ 120 rpm</li>
+                        <li><strong>Polish Time (연마 시간):</strong> 30 ~ 120 sec</li>
+                    </ul>
+                </div>
+                <div class="modal-section">
+                    <h3>2. 판정 기준 (Output Criteria)</h3>
+                    <div class="criteria-grid">
+                        <div class="criteria-card temp-card">
+                            <h4>Temperature (온도)</h4>
+                            <p class="normal"><strong>NORMAL:</strong> 25 ~ 45 °C</p>
+                            <p class="warning"><strong>WARNING:</strong> 45 ~ 50 °C</p>
+                            <p class="danger"><strong>DANGER:</strong> 50 °C 초과</p>
+                        </div>
+                        <div class="criteria-card rr-card">
+                            <h4>Removal Rate (연마율)</h4>
+                            <p class="normal"><strong>NORMAL:</strong> 1000 ~ 3000 Å/min</p>
+                            <p class="warning"><strong>WARNING:</strong> 800 ~ 1000 또는 3000 ~ 3200 Å/min</p>
+                            <p class="danger"><strong>DANGER:</strong> 800 Å/min 미만 또는 3200 Å/min 초과</p>
+                        </div>
+                        <div class="criteria-card uni-card">
+                            <h4>Uniformity (균일도)</h4>
+                            <p class="normal"><strong>NORMAL:</strong> 98% 이상</p>
+                            <p class="warning"><strong>WARNING:</strong> 95 ~ 98%</p>
+                            <p class="danger"><strong>DANGER:</strong> 95% 미만</p>
+                        </div>
+                    </div>
+                    <p class="note-text">※ 최종 판정은 출력값 중 가장 위험도가 높은 단계를 따릅니다.</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" id="btnCloseModalBtn">확인</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
