@@ -38,9 +38,12 @@
                                     <span>Carrier Pressure</span>
                                     <span class="range-info">제어 범위: 2.7 ~ 5.3 (설비 스펙: 2.0 ~ 6.0)</span>
                                 </label>
-                                <div class="input-wrapper">
-                                    <input type="number" id="carrierPressure" step="0.1" min="1.0" max="10.0" value="3.5">
-                                    <span class="unit">psi</span>
+                                <div class="input-wrapper-row">
+                                    <input type="range" id="carrierPressureSlider" class="recipe-slider" step="0.1" min="1.0" max="10.0" value="3.5">
+                                    <div class="input-wrapper">
+                                        <input type="number" id="carrierPressure" step="0.1" min="1.0" max="10.0" value="3.5">
+                                        <span class="unit">psi</span>
+                                    </div>
                                 </div>
                             </div>
 
@@ -49,9 +52,12 @@
                                     <span>Platen Speed</span>
                                     <span class="range-info">제어 범위: 44 ~ 106 (설비 스펙: 30 ~ 120)</span>
                                 </label>
-                                <div class="input-wrapper">
-                                    <input type="number" id="platenSpeed" step="1" min="10" max="200" value="60">
-                                    <span class="unit">rpm</span>
+                                <div class="input-wrapper-row">
+                                    <input type="range" id="platenSpeedSlider" class="recipe-slider" step="1" min="10" max="200" value="60">
+                                    <div class="input-wrapper">
+                                        <input type="number" id="platenSpeed" step="1" min="10" max="200" value="60">
+                                        <span class="unit">rpm</span>
+                                    </div>
                                 </div>
                             </div>
 
@@ -60,9 +66,12 @@
                                     <span>Carrier Speed</span>
                                     <span class="range-info">제어 범위: 44 ~ 106 (설비 스펙: 30 ~ 120)</span>
                                 </label>
-                                <div class="input-wrapper">
-                                    <input type="number" id="carrierSpeed" step="1" min="10" max="200" value="60">
-                                    <span class="unit">rpm</span>
+                                <div class="input-wrapper-row">
+                                    <input type="range" id="carrierSpeedSlider" class="recipe-slider" step="1" min="10" max="200" value="60">
+                                    <div class="input-wrapper">
+                                        <input type="number" id="carrierSpeed" step="1" min="10" max="200" value="60">
+                                        <span class="unit">rpm</span>
+                                    </div>
                                 </div>
                             </div>
 
@@ -71,9 +80,12 @@
                                     <span>Slurry Flow Rate</span>
                                     <span class="range-info">제어 범위: 131 ~ 269 (설비 스펙: 100 ~ 300)</span>
                                 </label>
-                                <div class="input-wrapper">
-                                    <input type="number" id="slurryFlow" step="1" min="50" max="500" value="200">
-                                    <span class="unit">mL/min</span>
+                                <div class="input-wrapper-row">
+                                    <input type="range" id="slurryFlowSlider" class="recipe-slider" step="1" min="50" max="500" value="200">
+                                    <div class="input-wrapper">
+                                        <input type="number" id="slurryFlow" step="1" min="50" max="500" value="200">
+                                        <span class="unit">mL/min</span>
+                                    </div>
                                 </div>
                             </div>
 
@@ -82,9 +94,12 @@
                                     <span>Conditioner Pressure</span>
                                     <span class="range-info">제어 범위: 2.7 ~ 5.3 (설비 스펙: 2.0 ~ 6.0)</span>
                                 </label>
-                                <div class="input-wrapper">
-                                    <input type="number" id="condPressure" step="0.1" min="1.0" max="10.0" value="3.0">
-                                    <span class="unit">psi</span>
+                                <div class="input-wrapper-row">
+                                    <input type="range" id="condPressureSlider" class="recipe-slider" step="0.1" min="1.0" max="10.0" value="3.0">
+                                    <div class="input-wrapper">
+                                        <input type="number" id="condPressure" step="0.1" min="1.0" max="10.0" value="3.0">
+                                        <span class="unit">psi</span>
+                                    </div>
                                 </div>
                             </div>
 
@@ -93,9 +108,12 @@
                                     <span>Conditioner Speed</span>
                                     <span class="range-info">제어 범위: 53 ~ 107 (설비 스펙: 40 ~ 120)</span>
                                 </label>
-                                <div class="input-wrapper">
-                                    <input type="number" id="condSpeed" step="1" min="20" max="200" value="80">
-                                    <span class="unit">rpm</span>
+                                <div class="input-wrapper-row">
+                                    <input type="range" id="condSpeedSlider" class="recipe-slider" step="1" min="20" max="200" value="80">
+                                    <div class="input-wrapper">
+                                        <input type="number" id="condSpeed" step="1" min="20" max="200" value="80">
+                                        <span class="unit">rpm</span>
+                                    </div>
                                 </div>
                             </div>
 
@@ -104,9 +122,12 @@
                                     <span>Polish Time</span>
                                     <span class="range-info">제어 범위: 30 ~ 120 (설비 스펙: 30 ~ 120)</span>
                                 </label>
-                                <div class="input-wrapper">
-                                    <input type="number" id="polishTime" step="1" min="10" max="300" value="60">
-                                    <span class="unit">sec</span>
+                                <div class="input-wrapper-row">
+                                    <input type="range" id="polishTimeSlider" class="recipe-slider" step="1" min="10" max="300" value="60">
+                                    <div class="input-wrapper">
+                                        <input type="number" id="polishTime" step="1" min="10" max="300" value="60">
+                                        <span class="unit">sec</span>
+                                    </div>
                                 </div>
                             </div>
 
@@ -125,10 +146,18 @@
                             <button type="button" class="btn btn-primary btn-large btn-full" id="btnSimulate">
                                 <span class="btn-icon">▶</span> 시뮬레이션 실행 (Simulate)
                             </button>
-                            <button type="button" class="btn btn-success btn-large btn-full" id="btnSaveLog">
-                                <span class="btn-icon">💾</span> 로그 저장 (Save Log)
+                            <button type="button" class="btn btn-danger btn-large btn-full" id="btnPause" disabled>
+                                <span class="btn-icon">⏸</span> 일시정지 (Pause)
                             </button>
-                            <button type="button" class="btn btn-warning btn-large btn-full" id="btnReset">
+                            <div class="log-save-buttons-row">
+                                <button type="button" class="btn btn-success btn-full" id="btnSaveLogAll" disabled>
+                                    <span class="btn-icon">💾</span> 전체 저장
+                                </button>
+                                <button type="button" class="btn btn-warning btn-full" id="btnSaveLogFail" disabled>
+                                    <span class="btn-icon">🚨</span> 이상제품 저장
+                                </button>
+                            </div>
+                            <button type="button" class="btn btn-secondary btn-large btn-full" id="btnReset">
                                 <span class="btn-icon">🔄</span> 초기화 (Reset)
                             </button>
                         </div>
@@ -145,13 +174,13 @@
             <!-- Middle Column: Scenario Distribution, Yield Summary, & Status Display -->
             <div class="middle-column">
                 
-                <!-- FOUP Scenario Distribution -->
+                <!-- FOUP Scenario Controls -->
                 <section class="card scenario-select-card">
                     <div class="card-header">
-                        <h2>FOUP 시나리오 분포 (Scenario Distribution)</h2>
+                        <h2>공정 시나리오 제어 (Scenario Controls)</h2>
                     </div>
                     <div class="card-body">
-                        <div class="distribution-header-controls">
+                        <div class="distribution-header-controls" style="border-bottom: none; padding-bottom: 0;">
                             <div class="dist-input-group row-group">
                                 <label for="distTotalWafers">총 웨이퍼 수 (Total Wafers)</label>
                                 <div class="input-wrapper input-wrapper-small" style="width: 100%;">
@@ -160,39 +189,19 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="distribution-grid">
-                            <div class="dist-input-group">
-                                <label for="distNormal">정상 (Normal)</label>
-                                <div class="input-wrapper input-wrapper-small">
-                                    <input type="number" id="distNormal" min="0" max="100" value="80" class="dist-input">
-                                    <span class="unit">%</span>
-                                </div>
-                            </div>
-                            <div class="dist-input-group">
-                                <label for="distSlurry">슬러리 주의 (Slurry W)</label>
-                                <div class="input-wrapper input-wrapper-small">
-                                    <input type="number" id="distSlurry" min="0" max="100" value="8" class="dist-input">
-                                    <span class="unit">%</span>
-                                </div>
-                            </div>
-                            <div class="dist-input-group">
-                                <label for="distCond">컨디셔너 주의 (Cond W)</label>
-                                <div class="input-wrapper input-wrapper-small">
-                                    <input type="number" id="distCond" min="0" max="100" value="8" class="dist-input">
-                                    <span class="unit">%</span>
-                                </div>
-                            </div>
-                            <div class="dist-input-group">
-                                <label for="distPressure">압력 위험 (Pressure D)</label>
-                                <div class="input-wrapper input-wrapper-small">
-                                    <input type="number" id="distPressure" min="0" max="100" value="4" class="dist-input">
-                                    <span class="unit">%</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="distribution-total-bar">
-                            <span>선택된 비율 합계: <strong id="distTotalCount">100</strong>% / 100%</span>
-                            <span id="distValidationMsg" class="valid-msg">✓ 비율 일치</span>
+                        <div class="scenario-buttons-grid">
+                            <button type="button" class="btn btn-scenario active" id="btnScenarioNormal" data-scenario="0">
+                                🟢 정상 (Normal)
+                            </button>
+                            <button type="button" class="btn btn-scenario" id="btnScenarioSlurry" data-scenario="1">
+                                🟡 슬러리 이상 (Slurry)
+                            </button>
+                            <button type="button" class="btn btn-scenario" id="btnScenarioCond" data-scenario="2">
+                                🟡 컨디셔너 이상 (Cond)
+                            </button>
+                            <button type="button" class="btn btn-scenario" id="btnScenarioPressure" data-scenario="3">
+                                🔴 압력 이상 (Pressure)
+                            </button>
                         </div>
                     </div>
                 </section>

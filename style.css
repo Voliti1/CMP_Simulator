@@ -1017,6 +1017,103 @@ canvas {
     font-size: 12px !important;
 }
 
+/* Slider & Scenario Layout Updates */
+.input-wrapper-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+}
+
+.recipe-slider {
+    flex: 1;
+    -webkit-appearance: none;
+    appearance: none;
+    height: 6px;
+    border-radius: 3px;
+    background: var(--bg-input);
+    outline: none;
+    transition: background 0.2s;
+    border: 1px solid var(--border-color);
+}
+
+.recipe-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--color-primary);
+    cursor: pointer;
+    box-shadow: 0 0 6px var(--color-primary-glow);
+    transition: transform 0.1s;
+}
+
+.recipe-slider::-webkit-slider-thumb:hover {
+    transform: scale(1.2);
+}
+
+.recipe-slider::-moz-range-thumb {
+    width: 14px;
+    height: 14px;
+    border: none;
+    border-radius: 50%;
+    background: var(--color-primary);
+    cursor: pointer;
+    box-shadow: 0 0 6px var(--color-primary-glow);
+    transition: transform 0.1s;
+}
+
+.recipe-slider::-moz-range-thumb:hover {
+    transform: scale(1.2);
+}
+
+/* Scenario buttons grid */
+.scenario-buttons-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.btn-scenario {
+    background-color: var(--bg-input);
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    padding: 10px 15px;
+    border-radius: var(--border-radius);
+    text-align: left;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    justify-content: flex-start;
+}
+
+.btn-scenario:hover {
+    border-color: var(--color-primary);
+    background-color: var(--bg-input-focus);
+    color: white;
+}
+
+.btn-scenario.active {
+    background-color: rgba(59, 130, 246, 0.15);
+    border-color: var(--color-primary);
+    color: white;
+    box-shadow: 0 0 15px rgba(59, 130, 246, 0.2);
+}
+
+/* Log save buttons row layout */
+.log-save-buttons-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    width: 100%;
+}
+
 /* Mobile Responsive Overrides */
 @media (max-width: 600px) {
     body {

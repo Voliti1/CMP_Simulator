@@ -22,20 +22,26 @@ const Ranges = {
 // UI Elements
 const els = {
     carrierPressure: document.getElementById('carrierPressure'),
+    carrierPressureSlider: document.getElementById('carrierPressureSlider'),
     platenSpeed: document.getElementById('platenSpeed'),
+    platenSpeedSlider: document.getElementById('platenSpeedSlider'),
     carrierSpeed: document.getElementById('carrierSpeed'),
+    carrierSpeedSlider: document.getElementById('carrierSpeedSlider'),
     slurryFlow: document.getElementById('slurryFlow'),
+    slurryFlowSlider: document.getElementById('slurryFlowSlider'),
     condPressure: document.getElementById('condPressure'),
+    condPressureSlider: document.getElementById('condPressureSlider'),
     condSpeed: document.getElementById('condSpeed'),
+    condSpeedSlider: document.getElementById('condSpeedSlider'),
     polishTime: document.getElementById('polishTime'),
+    polishTimeSlider: document.getElementById('polishTimeSlider'),
     
     distTotalWafers: document.getElementById('distTotalWafers'),
-    distNormal: document.getElementById('distNormal'),
-    distSlurry: document.getElementById('distSlurry'),
-    distCond: document.getElementById('distCond'),
-    distPressure: document.getElementById('distPressure'),
-    distTotalCount: document.getElementById('distTotalCount'),
-    distValidationMsg: document.getElementById('distValidationMsg'),
+    
+    btnScenarioNormal: document.getElementById('btnScenarioNormal'),
+    btnScenarioSlurry: document.getElementById('btnScenarioSlurry'),
+    btnScenarioCond: document.getElementById('btnScenarioCond'),
+    btnScenarioPressure: document.getElementById('btnScenarioPressure'),
     
     summaryTotal: document.getElementById('summaryTotal'),
     summaryGood: document.getElementById('summaryGood'),
@@ -49,7 +55,9 @@ const els = {
     resRR: document.getElementById('resRR'),
     
     btnSimulate: document.getElementById('btnSimulate'),
-    btnSaveLog: document.getElementById('btnSaveLog'),
+    btnPause: document.getElementById('btnPause'),
+    btnSaveLogAll: document.getElementById('btnSaveLogAll'),
+    btnSaveLogFail: document.getElementById('btnSaveLogFail'),
     btnReset: document.getElementById('btnReset'),
     btnRangeInfo: document.getElementById('btnRangeInfo'),
     
@@ -70,6 +78,8 @@ const els = {
 
 // Simulation State
 let isSimulating = false;
+let isPaused = false;
+let activeScenarioIndex = 0;
 let simulationInterval = null;
 let currentTime = 0; // Elapsed seconds for current wafer
 let totalTime = 60;  // Polish time for current wafer
@@ -595,71 +605,19 @@ function getStatusDescription(status) {
 // --- Control Actions ---
 
 // Validation for distribution percentages
+// Validation for total wafers
 function validateDistribution() {
-    const pNormal = parseFloat(els.distNormal.value) || 0;
-    const pSlurry = parseFloat(els.distSlurry.value) || 0;
-    const pCond = parseFloat(els.distCond.value) || 0;
-    const pPressure = parseFloat(els.distPressure.value) || 0;
     const totalWafers = parseInt(els.distTotalWafers.value) || 25;
     
-    // Clamp totalWafers to [1, 10000] to prevent UI crash or slow execution
+    // Clamp totalWafers to [1, 10000]
     if (totalWafers < 1) els.distTotalWafers.value = 1;
     if (totalWafers > 10000) els.distTotalWafers.value = 10000;
     
     els.summaryTotal.textContent = els.distTotalWafers.value;
-    
-    const sum = pNormal + pSlurry + pCond + pPressure;
-    els.distTotalCount.textContent = sum.toFixed(0);
-    
-    if (Math.abs(sum - 100.0) < 0.01) {
-        els.distValidationMsg.textContent = "✓ 비율 일치";
-        els.distValidationMsg.className = "valid-msg";
-        els.btnSimulate.disabled = false;
-        return true;
-    } else {
-        els.distValidationMsg.textContent = `✗ 합계 100%여야 함 (${sum.toFixed(0)}%)`;
-        els.distValidationMsg.className = "invalid-msg";
-        els.btnSimulate.disabled = true;
-        return false;
-    }
+    els.btnSimulate.disabled = false;
+    return true;
 }
-
-// Apportions wafers based on percentages using the Largest Remainder Method
-function calculateWaferCounts(pNormal, pSlurry, pCond, pPressure, totalWafers) {
-    const percentages = [pNormal, pSlurry, pCond, pPressure];
-    
-    // 1. Calculate fractional counts
-    const floatCounts = percentages.map(p => (p / 100) * totalWafers);
-    
-    // 2. Initial floor rounded counts
-    const counts = floatCounts.map(f => Math.floor(f));
-    let currentSum = counts.reduce((a, b) => a + b, 0);
-    
-    // 3. Calculate remainders
-    const remainders = floatCounts.map((f, i) => ({
-        index: i,
-        rem: f - counts[i]
-    }));
-    
-    // 4. Sort remainders in descending order
-    remainders.sort((a, b) => b.rem - a.rem);
-    
-    // 5. Distribute remaining wafers
-    let idx = 0;
-    while (currentSum < totalWafers) {
-        counts[remainders[idx].index]++;
-        currentSum++;
-        idx++;
-    }
-    
-    return {
-        normal: counts[0],
-        slurry: counts[1],
-        cond: counts[2],
-        pressure: counts[3]
-    };
-}
-
+        
 // Simulates a wafer's full 60-second run instantly for large-batch optimization
 function simulateWaferInstantly(recipe, scenarioIndex) {
     let temp = 25.0;
@@ -765,11 +723,88 @@ function simulateWaferInstantly(recipe, scenarioIndex) {
     };
 }
 
-// Distribution input listeners
-[els.distTotalWafers, els.distNormal, els.distSlurry, els.distCond, els.distPressure].forEach(input => {
-    if (input) {
-        input.addEventListener('input', validateDistribution);
-        input.addEventListener('change', validateDistribution);
+// UI input listeners & range slider synchronization
+if (els.distTotalWafers) {
+    els.distTotalWafers.addEventListener('input', validateDistribution);
+    els.distTotalWafers.addEventListener('change', validateDistribution);
+}
+
+function bindSyncInputs(inputEl, sliderEl, isFloat) {
+    if (!inputEl || !sliderEl) return;
+    
+    // Slider -> Input
+    sliderEl.addEventListener('input', () => {
+        const val = isFloat ? parseFloat(sliderEl.value) : parseInt(sliderEl.value);
+        inputEl.value = isFloat ? val.toFixed(1) : val;
+        updateRecipeFromUI();
+    });
+    
+    // Input -> Slider
+    inputEl.addEventListener('input', () => {
+        let val = isFloat ? parseFloat(inputEl.value) : parseInt(inputEl.value);
+        if (isNaN(val)) return;
+        sliderEl.value = val;
+        updateRecipeFromUI();
+    });
+}
+
+function updateRecipeFromUI() {
+    if (!simulatedRecipe) {
+        simulatedRecipe = {};
+    }
+    simulatedRecipe.carrierPressure = parseFloat(els.carrierPressure.value) || 3.5;
+    simulatedRecipe.platenSpeed = parseInt(els.platenSpeed.value) || 60;
+    simulatedRecipe.carrierSpeed = parseInt(els.carrierSpeed.value) || 60;
+    simulatedRecipe.slurryFlow = parseInt(els.slurryFlow.value) || 200;
+    simulatedRecipe.condPressure = parseFloat(els.condPressure.value) || 3.0;
+    simulatedRecipe.condSpeed = parseInt(els.condSpeed.value) || 80;
+    simulatedRecipe.polishTime = parseInt(els.polishTime.value) || 60;
+}
+
+// Bind all inputs
+bindSyncInputs(els.carrierPressure, els.carrierPressureSlider, true);
+bindSyncInputs(els.platenSpeed, els.platenSpeedSlider, false);
+bindSyncInputs(els.carrierSpeed, els.carrierSpeedSlider, false);
+bindSyncInputs(els.slurryFlow, els.slurryFlowSlider, false);
+bindSyncInputs(els.condPressure, els.condPressureSlider, true);
+bindSyncInputs(els.condSpeed, els.condSpeedSlider, false);
+bindSyncInputs(els.polishTime, els.polishTimeSlider, false);
+
+// Scenario buttons interaction
+const scenarioButtons = [
+    { btn: els.btnScenarioNormal, val: 0 },
+    { btn: els.btnScenarioSlurry, val: 1 },
+    { btn: els.btnScenarioCond, val: 2 },
+    { btn: els.btnScenarioPressure, val: 3 }
+];
+
+scenarioButtons.forEach(item => {
+    if (item.btn) {
+        item.btn.addEventListener('click', () => {
+            // Remove active class from all
+            scenarioButtons.forEach(b => b.btn.classList.remove('active'));
+            // Add active class to clicked
+            item.btn.classList.add('active');
+            
+            // Set global active scenario index
+            activeScenarioIndex = item.val;
+            
+            // If simulation is running, update the current wafer's scenario index in real-time
+            if (isSimulating) {
+                if (currentWaferIdx < waferBatch.length) {
+                    waferBatch[currentWaferIdx].scenarioIndex = activeScenarioIndex;
+                    
+                    if (waferBatch.length <= 50) {
+                        els.progressLabel.textContent = `시나리오 변경: Wafer #${currentWaferIdx + 1} -> ${item.btn.textContent.trim()}`;
+                    }
+                }
+                
+                // Update all remaining wafers in the batch
+                for (let i = currentWaferIdx + 1; i < waferBatch.length; i++) {
+                    waferBatch[i].scenarioIndex = activeScenarioIndex;
+                }
+            }
+        });
     }
 });
 
@@ -783,13 +818,21 @@ const closeModal = () => {
 };
 els.btnCloseModal.addEventListener('click', closeModal);
 els.btnCloseModalBtn.addEventListener('click', closeModal);
-// Simulate Button click (Start / Stop)
+
+// Simulate Button click (Start / Resume)
 els.btnSimulate.addEventListener('click', () => {
     if (isSimulating) {
-        stopSimulation(true); // Premature stop
+        if (isPaused) {
+            resumeSimulation();
+        }
     } else {
         startSimulation();
     }
+});
+
+// Pause Button click
+els.btnPause.addEventListener('click', () => {
+    pauseSimulation();
 });
 
 function startSimulation() {
@@ -806,32 +849,14 @@ function startSimulation() {
         polishTime: parseInt(els.polishTime.value)
     };
     
-    // Generate the Wafers Batch based on Scenario Distribution Percentages
-    const pNormal = parseFloat(els.distNormal.value) || 0;
-    const pSlurry = parseFloat(els.distSlurry.value) || 0;
-    const pCond = parseFloat(els.distCond.value) || 0;
-    const pPressure = parseFloat(els.distPressure.value) || 0;
+    // Generate the Wafers Batch based on selected activeScenarioIndex
     const totalWafers = parseInt(els.distTotalWafers.value) || 25;
-    
-    const counts = calculateWaferCounts(pNormal, pSlurry, pCond, pPressure, totalWafers);
-    
-    let scenariosPool = [];
-    for (let i = 0; i < counts.normal; i++) scenariosPool.push(0);
-    for (let i = 0; i < counts.slurry; i++) scenariosPool.push(1);
-    for (let i = 0; i < counts.cond; i++) scenariosPool.push(2);
-    for (let i = 0; i < counts.pressure; i++) scenariosPool.push(3);
-    
-    // Shuffle to randomize order
-    for (let i = scenariosPool.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [scenariosPool[i], scenariosPool[j]] = [scenariosPool[j], scenariosPool[i]];
-    }
     
     waferBatch = [];
     for (let i = 0; i < totalWafers; i++) {
         waferBatch.push({
             waferNo: i + 1,
-            scenarioIndex: scenariosPool[i]
+            scenarioIndex: activeScenarioIndex
         });
     }
     
@@ -858,8 +883,7 @@ function startSimulation() {
     
     // UI states
     setInputsDisabled(true);
-    els.btnSimulate.innerHTML = '<span class="btn-icon">■</span> 공정 정지 (Stop)';
-    els.btnSimulate.className = 'btn btn-danger btn-large';
+    updateControlButtonsUI();
     
     els.progressLabel.textContent = `Wafer #1 / ${totalWafers} 시작...`;
     els.progressLabel.style.color = 'var(--color-warning)';
@@ -877,6 +901,69 @@ function startSimulation() {
     initGaugeAnimation();
     
     // Start simulation loop
+    runSimulationLoop();
+}
+
+function updateControlButtonsUI() {
+    if (!isSimulating) {
+        // Idle state (or completed)
+        els.btnSimulate.innerHTML = '<span class="btn-icon">▶</span> 시뮬레이션 실행 (Simulate)';
+        els.btnSimulate.disabled = false;
+        els.btnSimulate.className = 'btn btn-primary btn-large btn-full';
+        
+        els.btnPause.disabled = true;
+        els.btnSaveLogAll.disabled = logHistory.length === 0;
+        els.btnSaveLogFail.disabled = logHistory.filter(e => e.status === StatusLevel.WARNING || e.status === StatusLevel.DANGER).length === 0;
+        els.btnReset.disabled = false;
+    } else if (isPaused) {
+        // Paused state
+        els.btnSimulate.innerHTML = '<span class="btn-icon">▶</span> 시뮬레이션 재개 (Resume)';
+        els.btnSimulate.disabled = false;
+        els.btnSimulate.className = 'btn btn-success btn-large btn-full';
+        
+        els.btnPause.disabled = true;
+        els.btnSaveLogAll.disabled = logHistory.length === 0;
+        els.btnSaveLogFail.disabled = logHistory.filter(e => e.status === StatusLevel.WARNING || e.status === StatusLevel.DANGER).length === 0;
+        els.btnReset.disabled = false;
+    } else {
+        // Simulating state (running)
+        els.btnSimulate.innerHTML = '<span class="btn-icon">▶</span> 시뮬레이션 재개 (Resume)';
+        els.btnSimulate.disabled = true;
+        els.btnSimulate.className = 'btn btn-secondary btn-large btn-full';
+        
+        els.btnPause.disabled = false;
+        els.btnSaveLogAll.disabled = true;
+        els.btnSaveLogFail.disabled = true;
+        els.btnReset.disabled = false; // Enabled so user can Reset (abort)
+    }
+}
+
+function pauseSimulation() {
+    if (isSimulating && !isPaused) {
+        clearInterval(simulationInterval);
+        isPaused = true;
+        
+        els.progressLabel.textContent = `Wafer #${currentWaferIdx + 1} / ${waferBatch.length} 일시정지됨`;
+        els.progressLabel.style.color = 'var(--color-warning)';
+        
+        updateControlButtonsUI();
+    }
+}
+
+function resumeSimulation() {
+    if (isSimulating && isPaused) {
+        isPaused = false;
+        updateControlButtonsUI();
+        
+        els.progressLabel.textContent = `Wafer #${currentWaferIdx + 1} / ${waferBatch.length} 진행 중...`;
+        els.progressLabel.style.color = 'var(--color-warning)';
+        
+        runSimulationLoop();
+    }
+}
+
+function runSimulationLoop() {
+    const totalWafers = waferBatch.length;
     if (totalWafers <= 50) {
         // Slow real-time sequential simulation mode (10ms per simulated second)
         simulationInterval = setInterval(() => {
@@ -889,8 +976,11 @@ function startSimulation() {
             
             // Update input readouts in UI dynamically to show the changing wafer state
             updateNumericInputSilently(els.slurryFlow, currentInputs.slurryFlow);
+            if (els.slurryFlowSlider) els.slurryFlowSlider.value = currentInputs.slurryFlow;
             updateNumericInputSilently(els.condSpeed, currentInputs.condSpeed);
+            if (els.condSpeedSlider) els.condSpeedSlider.value = currentInputs.condSpeed;
             updateNumericInputSilently(els.carrierPressure, currentInputs.carrierPressure);
+            if (els.carrierPressureSlider) els.carrierPressureSlider.value = currentInputs.carrierPressure;
             
             // Update output readouts in UI
             els.resTemp.textContent = simulatedOutputs.temp.toFixed(1);
@@ -957,10 +1047,16 @@ function startSimulation() {
                         uniformity: 99.5
                     };
                     
+                    // Assign currently selected activeScenarioIndex to the next wafer starting
+                    waferBatch[currentWaferIdx].scenarioIndex = activeScenarioIndex;
+                    
                     // Reset inputs UI back to baseline recipe values for next wafer start
                     updateNumericInputSilently(els.slurryFlow, simulatedRecipe.slurryFlow);
+                    if (els.slurryFlowSlider) els.slurryFlowSlider.value = simulatedRecipe.slurryFlow;
                     updateNumericInputSilently(els.condSpeed, simulatedRecipe.condSpeed);
+                    if (els.condSpeedSlider) els.condSpeedSlider.value = simulatedRecipe.condSpeed;
                     updateNumericInputSilently(els.carrierPressure, simulatedRecipe.carrierPressure);
+                    if (els.carrierPressureSlider) els.carrierPressureSlider.value = simulatedRecipe.carrierPressure;
                 } else {
                     // FOUP Completed!
                     stopSimulation(false);
@@ -968,9 +1064,8 @@ function startSimulation() {
             }
         }, 10);
     } else {
-        // High-speed chunked simulation mode for large batches (up to 10,000)
-        // We complete the batch in ~2 seconds (200 ticks of 10ms)
-        const wafersPerTick = Math.ceil(totalWafers / 200);
+        // High-speed simulation mode running at 100 wafers per second (1 wafer per 10ms tick)
+        const wafersPerTick = 1;
         let lastUiUpdateTime = 0;
         
         simulationInterval = setInterval(() => {
@@ -1026,8 +1121,11 @@ function startSimulation() {
                     targetGaugeValue = lastOutput.uniformity;
                     
                     updateNumericInputSilently(els.slurryFlow, lastInputs.slurryFlow);
+                    if (els.slurryFlowSlider) els.slurryFlowSlider.value = Math.round(lastInputs.slurryFlow);
                     updateNumericInputSilently(els.condSpeed, lastInputs.condSpeed);
+                    if (els.condSpeedSlider) els.condSpeedSlider.value = Math.round(lastInputs.condSpeed);
                     updateNumericInputSilently(els.carrierPressure, lastInputs.carrierPressure);
+                    if (els.carrierPressureSlider) els.carrierPressureSlider.value = lastInputs.carrierPressure.toFixed(1);
                 }
                 
                 yieldPct = (goodCount / currentWaferIdx) * 100;
@@ -1071,11 +1169,11 @@ function updateNumericInputSilently(inputEl, val) {
 function stopSimulation(aborted) {
     clearInterval(simulationInterval);
     isSimulating = false;
+    isPaused = false;
     
     // Reset controls
     setInputsDisabled(false);
-    els.btnSimulate.innerHTML = '<span class="btn-icon">▶</span> 시뮬레이션 실행 (Simulate)';
-    els.btnSimulate.className = 'btn btn-primary btn-large';
+    updateControlButtonsUI();
     
     if (aborted) {
         els.progressLabel.textContent = "공정 비정상 중지";
@@ -1146,22 +1244,7 @@ function updateStatusDisplay(status, explanation) {
 }
 
 function setInputsDisabled(disabled) {
-    els.carrierPressure.disabled = disabled;
-    els.platenSpeed.disabled = disabled;
-    els.carrierSpeed.disabled = disabled;
-    els.slurryFlow.disabled = disabled;
-    els.condPressure.disabled = disabled;
-    els.condSpeed.disabled = disabled;
-    els.polishTime.disabled = disabled;
-    
-    els.distNormal.disabled = disabled;
-    els.distSlurry.disabled = disabled;
-    els.distCond.disabled = disabled;
-    els.distPressure.disabled = disabled;
-    
-    els.btnReset.disabled = disabled;
-    els.btnSaveLog.disabled = disabled;
-    els.btnRangeInfo.disabled = disabled;
+    els.distTotalWafers.disabled = disabled;
 }
 
 // Log table and history additions
@@ -1235,9 +1318,9 @@ function renderLogTable() {
     }
 }
 
-// Save Log to CSV
-els.btnSaveLog.addEventListener('click', () => {
-    if (logHistory.length === 0) {
+// Save Log to CSV (Split: All vs Failures Only)
+function saveLogToCsv(data) {
+    if (data.length === 0) {
         alert('저장할 시뮬레이션 로그가 없습니다.');
         return;
     }
@@ -1245,7 +1328,7 @@ els.btnSaveLog.addEventListener('click', () => {
     // Create CSV content
     const headers = 'WaferNo,RecipeID,Time,CarrierPressure(psi),PlatenSpeed(rpm),CarrierSpeed(rpm),SlurryFlowRate(mL/min),ConditionerPressure(psi),ConditionerSpeed(rpm),PolishTime(sec),Temperature(C),RemovalRate(A/min),Uniformity(%),Status\n';
     
-    const rows = logHistory.map(e => {
+    const rows = data.map(e => {
         return `${e.id},${e.recipeId},${e.time},${e.pressure},${e.platen},${e.carrier},${e.slurry},${e.condP},${e.condS},${e.timeSec},${e.temp},${e.rr},${e.uniformity},${e.status}`;
     }).join('\n');
     
@@ -1265,6 +1348,15 @@ els.btnSaveLog.addEventListener('click', () => {
     document.body.appendChild(downloadAnchor);
     downloadAnchor.click();
     document.body.removeChild(downloadAnchor);
+}
+
+els.btnSaveLogAll.addEventListener('click', () => {
+    saveLogToCsv(logHistory);
+});
+
+els.btnSaveLogFail.addEventListener('click', () => {
+    const failures = logHistory.filter(e => e.status === StatusLevel.WARNING || e.status === StatusLevel.DANGER);
+    saveLogToCsv(failures);
 });
 
 // Reset Button click
@@ -1275,19 +1367,42 @@ els.btnReset.addEventListener('click', () => {
 function resetUI() {
     // Inputs reset
     els.carrierPressure.value = 3.5;
+    if (els.carrierPressureSlider) els.carrierPressureSlider.value = 3.5;
     els.platenSpeed.value = 60;
+    if (els.platenSpeedSlider) els.platenSpeedSlider.value = 60;
     els.carrierSpeed.value = 60;
+    if (els.carrierSpeedSlider) els.carrierSpeedSlider.value = 60;
     els.slurryFlow.value = 200;
+    if (els.slurryFlowSlider) els.slurryFlowSlider.value = 200;
     els.condPressure.value = 3.0;
+    if (els.condPressureSlider) els.condPressureSlider.value = 3.0;
     els.condSpeed.value = 80;
+    if (els.condSpeedSlider) els.condSpeedSlider.value = 80;
     els.polishTime.value = 60;
+    if (els.polishTimeSlider) els.polishTimeSlider.value = 60;
+    
+    // Reset active scenario highlight to Normal (0)
+    activeScenarioIndex = 0;
+    if (typeof scenarioButtons !== 'undefined') {
+        scenarioButtons.forEach(b => {
+            if (b.btn) {
+                if (b.val === 0) b.btn.classList.add('active');
+                else b.btn.classList.remove('active');
+            }
+        });
+    } else {
+        // Fallback if scenarioButtons is defined later or not accessible
+        const btns = [els.btnScenarioNormal, els.btnScenarioSlurry, els.btnScenarioCond, els.btnScenarioPressure];
+        btns.forEach((btn, idx) => {
+            if (btn) {
+                if (idx === 0) btn.classList.add('active');
+                else btn.classList.remove('active');
+            }
+        });
+    }
     
     // Distribution inputs reset
     els.distTotalWafers.value = 25;
-    els.distNormal.value = 80;
-    els.distSlurry.value = 8;
-    els.distCond.value = 8;
-    els.distPressure.value = 4;
     validateDistribution();
     
     // Outputs reset
@@ -1319,6 +1434,7 @@ function resetUI() {
     els.progressBarFill.style.width = '0%';
     
     setInputsDisabled(false);
+    updateControlButtonsUI();
 }
 
 // Initial draw on page load
