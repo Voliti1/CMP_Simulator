@@ -441,21 +441,21 @@ function simulateStep(t, recipe, scenario) {
     let condPressure = recipe.condPressure;
     let condSpeed = recipe.condSpeed;
     
-    // Apply Scenario transitions
-    if (scenario === 1) { // Slurry Warning (drops 220 -> 130 after 30s)
+    // Apply Scenario transitions (relative to user's recipe values)
+    if (scenario === 1) { // Slurry Warning (drops to 60% of baseline over 20s)
         if (t > 30) {
-            const ratio = Math.min(1.0, (t - 30) / 20.0); // drop over 20s
-            slurryFlow = 220.0 - ratio * (220.0 - 130.0);
+            const ratio = Math.min(1.0, (t - 30) / 20.0);
+            slurryFlow = recipe.slurryFlow * (1.0 - ratio * 0.40);
         }
-    } else if (scenario === 2) { // Conditioner Warning (drops 80 -> 40 after 20s)
+    } else if (scenario === 2) { // Conditioner Warning (drops to 50% of baseline over 30s)
         if (t > 20) {
-            const ratio = Math.min(1.0, (t - 20) / 30.0); // drop over 30s
-            condSpeed = 80.0 - ratio * (80.0 - 40.0);
+            const ratio = Math.min(1.0, (t - 20) / 30.0);
+            condSpeed = recipe.condSpeed * (1.0 - ratio * 0.50);
         }
-    } else if (scenario === 3) { // Carrier Pressure Danger (rises 3.5 -> 6.5 after 20s)
+    } else if (scenario === 3) { // Carrier Pressure Danger (rises by 85% of baseline over 20s)
         if (t > 20) {
-            const ratio = Math.min(1.0, (t - 20) / 20.0); // rise over 20s
-            p = 3.5 + ratio * (6.5 - 3.5);
+            const ratio = Math.min(1.0, (t - 20) / 20.0);
+            p = recipe.carrierPressure * (1.0 + ratio * 0.85);
         }
     }
     
@@ -471,7 +471,7 @@ function simulateStep(t, recipe, scenario) {
     }
     
     // 1. Temperature model (base heat + friction + cooling)
-    let tempTarget = 24.4 + (p * 3.2) + (platenSpeed * 0.08) - (slurryFlow * 0.04);
+    let tempTarget = 24.4 + (p * 3.2) + (platenSpeed * 0.06 + carrierSpeed * 0.02) - (slurryFlow * 0.04);
     if (slurryFlow < 150.0 && t > 10) {
         tempTarget += (150.0 - slurryFlow) * 0.08;
     }
@@ -489,10 +489,12 @@ function simulateStep(t, recipe, scenario) {
     let slurryMultiplier = slurryFlow >= 200.0 ? 1.0 : (0.7 + 0.3 * (slurryFlow - 100.0) / 100.0);
     if (slurryFlow < 100.0) slurryMultiplier = 0.7 * (slurryFlow / 100.0);
     
-    let conditionerMultiplier = condSpeed >= 80.0 ? 1.0 : (0.9 + 0.1 * (condSpeed - 40.0) / 40.0);
-    if (condSpeed < 40.0) conditionerMultiplier = 0.9 * (condSpeed / 40.0);
+    // Conditioning power depends on speed and pressure
+    let conditioningPower = (condSpeed / 80.0) * (condPressure / 3.0);
+    let conditionerMultiplier = conditioningPower >= 1.0 ? 1.0 : (0.85 + 0.15 * conditioningPower);
+    if (conditioningPower < 0.4) conditionerMultiplier = 0.85 * (conditioningPower / 0.4);
     
-    let targetRR = (pressureFactor * platenSpeed * 10.0) * slurryMultiplier * conditionerMultiplier;
+    let targetRR = (pressureFactor * (platenSpeed * 0.7 + carrierSpeed * 0.3) * 10.0) * slurryMultiplier * conditionerMultiplier;
     if (t > 10) {
         targetRR += (slurryFlow * 0.25);
     }
@@ -504,8 +506,13 @@ function simulateStep(t, recipe, scenario) {
     const pressurePenalty = p > 3.5 ? (p - 3.5) * 2.33 : 0.0;
     const slurryPenalty = slurryFlow < 200.0 ? (200.0 - slurryFlow) * 0.038 : 0.0;
     const conditionerPenalty = condSpeed < 80.0 ? (80.0 - condSpeed) * 0.045 : 0.0;
+    const condPressurePenalty = condPressure > 4.5 ? (condPressure - 4.5) * 1.5 : 0.0;
+    const condPressureLowPenalty = condPressure < 2.5 ? (2.5 - condPressure) * 0.8 : 0.0;
+    const speedMismatchPenalty = Math.abs(platenSpeed - carrierSpeed) > 10
+        ? (Math.abs(platenSpeed - carrierSpeed) - 10) * 0.05
+        : 0.0;
     
-    let targetUniformity = uniformityBase - pressurePenalty - slurryPenalty - conditionerPenalty;
+    let targetUniformity = uniformityBase - pressurePenalty - slurryPenalty - conditionerPenalty - condPressurePenalty - condPressureLowPenalty - speedMismatchPenalty;
     if (targetUniformity > 99.5) targetUniformity = 99.5;
     if (targetUniformity < 50.0) targetUniformity = 50.0;
     
@@ -634,21 +641,21 @@ function simulateWaferInstantly(recipe, scenarioIndex) {
         let condPressure = recipe.condPressure;
         let condSpeed = recipe.condSpeed;
         
-        // Apply Scenario transitions
-        if (scenarioIndex === 1) { // Slurry Warning (drops 220 -> 130 after 30s)
+        // Apply Scenario transitions (relative to user's recipe values)
+        if (scenarioIndex === 1) { // Slurry Warning (drops to 60% of baseline over 20s)
             if (t > 30) {
                 const ratio = Math.min(1.0, (t - 30) / 20.0);
-                slurryFlow = 220.0 - ratio * (220.0 - 130.0);
+                slurryFlow = recipe.slurryFlow * (1.0 - ratio * 0.40);
             }
-        } else if (scenarioIndex === 2) { // Conditioner Warning (drops 80 -> 40 after 20s)
+        } else if (scenarioIndex === 2) { // Conditioner Warning (drops to 50% of baseline over 30s)
             if (t > 20) {
                 const ratio = Math.min(1.0, (t - 20) / 30.0);
-                condSpeed = 80.0 - ratio * (80.0 - 40.0);
+                condSpeed = recipe.condSpeed * (1.0 - ratio * 0.50);
             }
-        } else if (scenarioIndex === 3) { // Carrier Pressure Danger (rises 3.5 -> 6.5 after 20s)
+        } else if (scenarioIndex === 3) { // Carrier Pressure Danger (rises by 85% of baseline over 20s)
             if (t > 20) {
                 const ratio = Math.min(1.0, (t - 20) / 20.0);
-                p = 3.5 + ratio * (6.5 - 3.5);
+                p = recipe.carrierPressure * (1.0 + ratio * 0.85);
             }
         }
         
@@ -670,8 +677,8 @@ function simulateWaferInstantly(recipe, scenarioIndex) {
         finalInputs.condPressure = condPressure;
         finalInputs.condSpeed = condSpeed;
         
-        // 1. Temperature model
-        let tempTarget = 24.4 + (p * 3.2) + (platenSpeed * 0.08) - (slurryFlow * 0.04);
+        // 1. Temperature model (base heat + friction + cooling)
+        let tempTarget = 24.4 + (p * 3.2) + (platenSpeed * 0.06 + carrierSpeed * 0.02) - (slurryFlow * 0.04);
         if (slurryFlow < 150.0 && t > 10) {
             tempTarget += (150.0 - slurryFlow) * 0.08;
         }
@@ -682,16 +689,18 @@ function simulateWaferInstantly(recipe, scenarioIndex) {
         
         temp += (targetTemp - temp) * 0.2;
         
-        // 2. Removal Rate model
+        // 2. Removal Rate model (with saturation at high pressure)
         const pressureFactor = p <= 4.0 ? p : (4.0 + (p - 4.0) * 0.35);
         
         let slurryMultiplier = slurryFlow >= 200.0 ? 1.0 : (0.7 + 0.3 * (slurryFlow - 100.0) / 100.0);
         if (slurryFlow < 100.0) slurryMultiplier = 0.7 * (slurryFlow / 100.0);
         
-        let conditionerMultiplier = condSpeed >= 80.0 ? 1.0 : (0.9 + 0.1 * (condSpeed - 40.0) / 40.0);
-        if (condSpeed < 40.0) conditionerMultiplier = 0.9 * (condSpeed / 40.0);
+        // Conditioning power depends on speed and pressure
+        let conditioningPower = (condSpeed / 80.0) * (condPressure / 3.0);
+        let conditionerMultiplier = conditioningPower >= 1.0 ? 1.0 : (0.85 + 0.15 * conditioningPower);
+        if (conditioningPower < 0.4) conditionerMultiplier = 0.85 * (conditioningPower / 0.4);
         
-        let targetRR = (pressureFactor * platenSpeed * 10.0) * slurryMultiplier * conditionerMultiplier;
+        let targetRR = (pressureFactor * (platenSpeed * 0.7 + carrierSpeed * 0.3) * 10.0) * slurryMultiplier * conditionerMultiplier;
         if (t > 10) {
             targetRR += (slurryFlow * 0.25);
         }
@@ -703,8 +712,13 @@ function simulateWaferInstantly(recipe, scenarioIndex) {
         const pressurePenalty = p > 3.5 ? (p - 3.5) * 2.33 : 0.0;
         const slurryPenalty = slurryFlow < 200.0 ? (200.0 - slurryFlow) * 0.038 : 0.0;
         const conditionerPenalty = condSpeed < 80.0 ? (80.0 - condSpeed) * 0.045 : 0.0;
+        const condPressurePenalty = condPressure > 4.5 ? (condPressure - 4.5) * 1.5 : 0.0;
+        const condPressureLowPenalty = condPressure < 2.5 ? (2.5 - condPressure) * 0.8 : 0.0;
+        const speedMismatchPenalty = Math.abs(platenSpeed - carrierSpeed) > 10
+            ? (Math.abs(platenSpeed - carrierSpeed) - 10) * 0.05
+            : 0.0;
         
-        let targetUniformity = uniformityBase - pressurePenalty - slurryPenalty - conditionerPenalty;
+        let targetUniformity = uniformityBase - pressurePenalty - slurryPenalty - conditionerPenalty - condPressurePenalty - condPressureLowPenalty - speedMismatchPenalty;
         if (targetUniformity > 99.5) targetUniformity = 99.5;
         if (targetUniformity < 50.0) targetUniformity = 50.0;
         
