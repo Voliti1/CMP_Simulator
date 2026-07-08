@@ -570,32 +570,15 @@ function judgeInputStatus(val, min, max) {
 }
 
 function evaluateOverallStatus(recipe, temp, rr, uniformity) {
-    // 1. Evaluate outputs
+    // Evaluate wafer quality based purely on output parameters
     const sTemp = judgeParamStatus(temp, 25.0, 45.0, 'temp');
     const sRR = judgeParamStatus(rr, 1000.0, 3000.0, 'rr');
     const sUni = judgeParamStatus(uniformity, 98.0, 100.0, 'uniformity');
     
-    // 2. Evaluate inputs
-    let sInputs = StatusLevel.NORMAL;
-    const checkInputs = [
-        { v: recipe.carrierPressure, r: Ranges.carrierPressure },
-        { v: recipe.platenSpeed, r: Ranges.platenSpeed },
-        { v: recipe.carrierSpeed, r: Ranges.carrierSpeed },
-        { v: recipe.slurryFlow, r: Ranges.slurryFlow },
-        { v: recipe.condPressure, r: Ranges.condPressure },
-        { v: recipe.condSpeed, r: Ranges.condSpeed }
-    ];
-    
-    checkInputs.forEach(i => {
-        const s = judgeInputStatus(i.v, i.r.min, i.r.max);
-        if (s === StatusLevel.DANGER) sInputs = StatusLevel.DANGER;
-        else if (s === StatusLevel.WARNING && sInputs !== StatusLevel.DANGER) sInputs = StatusLevel.WARNING;
-    });
-    
-    // 3. Find max risk
+    // Find max risk
     const ranks = { [StatusLevel.NORMAL]: 0, [StatusLevel.WARNING]: 1, [StatusLevel.DANGER]: 2 };
     
-    let maxRank = Math.max(ranks[sTemp], ranks[sRR], ranks[sUni], ranks[sInputs]);
+    let maxRank = Math.max(ranks[sTemp], ranks[sRR], ranks[sUni]);
     
     if (maxRank === 2) return StatusLevel.DANGER;
     if (maxRank === 1) return StatusLevel.WARNING;
