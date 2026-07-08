@@ -1265,6 +1265,8 @@ function stopSimulation(aborted) {
 }
 
 function updateStatusDisplay(status, explanation) {
+    if (!els.statusBadge || !els.statusExplanation) return;
+    
     // Reset status badge classes
     els.statusBadge.className = 'status-badge';
     
@@ -1327,11 +1329,51 @@ function addLogEntry(waferNo, recipe, outputs, status) {
 function renderLogTable() {
     els.logTableBody.innerHTML = '';
     
-    // Sort in reverse order (newest first)
-    const reversed = [...logHistory].reverse();
-    const maxToRender = Math.min(reversed.length, 100);
+    let filtered = [...logHistory];
     
-    for (let i = 0; i < maxToRender; i++) {
+    // 1. Wafer Range Filter
+    const minWInput = document.getElementById('searchWaferMin');
+    const maxWInput = document.getElementById('searchWaferMax');
+    const minW = minWInput ? parseInt(minWInput.value) : NaN;
+    const maxW = maxWInput ? parseInt(maxWInput.value) : NaN;
+    
+    if (!isNaN(minW)) {
+        filtered = filtered.filter(e => {
+            const waferNum = parseInt(e.id.replace('Wafer #', ''));
+            return waferNum >= minW;
+        });
+    }
+    if (!isNaN(maxW)) {
+        filtered = filtered.filter(e => {
+            const waferNum = parseInt(e.id.replace('Wafer #', ''));
+            return waferNum <= maxW;
+        });
+    }
+    
+    // 2. Column-specific Search
+    const colSelect = document.getElementById('searchColumn');
+    const queryInput = document.getElementById('searchText');
+    const col = colSelect ? colSelect.value : 'all';
+    const query = queryInput ? queryInput.value.trim().toLowerCase() : '';
+    
+    if (query !== '') {
+        filtered = filtered.filter(e => {
+            if (col === 'all') {
+                // Search all fields except id
+                return Object.keys(e).some(key => {
+                    if (key === 'id') return false;
+                    return String(e[key]).toLowerCase().includes(query);
+                });
+            } else {
+                return String(e[col] || '').toLowerCase().includes(query);
+            }
+        });
+    }
+    
+    // Sort in reverse order (newest first) and render ALL logs
+    const reversed = filtered.reverse();
+    
+    for (let i = 0; i < reversed.length; i++) {
         const e = reversed[i];
         const tr = document.createElement('tr');
         
@@ -1353,17 +1395,6 @@ function renderLogTable() {
             <td>${e.rr.toLocaleString()}</td>
             <td>${e.uniformity}</td>
             <td class="log-status-cell ${statusClass}">${e.status}</td>
-        `;
-        els.logTableBody.appendChild(tr);
-    }
-    
-    // If there are more logs, add a row indicating truncation
-    if (logHistory.length > 100) {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-            <td colspan="13" style="text-align: center; color: var(--text-muted); font-size: 11px; padding: 10px; background-color: rgba(0, 0, 0, 0.15);">
-                ※ 최신 100개의 로그만 표시 중입니다. (전체 ${logHistory.length}개 로그는 파일 저장 시 모두 포함됩니다.)
-            </td>
         `;
         els.logTableBody.appendChild(tr);
     }
@@ -1475,6 +1506,17 @@ function resetUI() {
     
     logHistory = [];
     nextLogId = 1;
+    
+    // Clear search filters
+    const searchWaferMin = document.getElementById('searchWaferMin');
+    if (searchWaferMin) searchWaferMin.value = '';
+    const searchWaferMax = document.getElementById('searchWaferMax');
+    if (searchWaferMax) searchWaferMax.value = '';
+    const searchText = document.getElementById('searchText');
+    if (searchText) searchText.value = '';
+    const searchColumn = document.getElementById('searchColumn');
+    if (searchColumn) searchColumn.value = 'all';
+    
     renderLogTable();
     
     // Status Display Reset
@@ -1490,3 +1532,26 @@ function resetUI() {
 
 // Initial draw on page load
 resetUI();
+
+// Search & Filter event bindings
+const btnSearch = document.getElementById('btnSearch');
+if (btnSearch) {
+    btnSearch.addEventListener('click', renderLogTable);
+}
+
+const searchInputs = ['searchWaferMin', 'searchWaferMax', 'searchText'];
+searchInputs.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+        el.addEventListener('keyup', (e) => {
+            if (e.key === 'Enter') {
+                renderLogTable();
+            }
+        });
+    }
+});
+
+const searchColumnSelect = document.getElementById('searchColumn');
+if (searchColumnSelect) {
+    searchColumnSelect.addEventListener('change', renderLogTable);
+}

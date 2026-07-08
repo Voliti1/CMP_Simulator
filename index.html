@@ -136,42 +136,10 @@
                     </div>
                 </section>
                 
-                <!-- Simulation Controls -->
-                <section class="card controls-card">
-                    <div class="card-header">
-                        <h2>공정 제어 (Controls)</h2>
-                    </div>
-                    <div class="card-body controls-body">
-                        <div class="control-actions-vertical">
-                            <button type="button" class="btn btn-primary btn-large btn-full" id="btnSimulate">
-                                <span class="btn-icon">▶</span> 시뮬레이션 실행 (Simulate)
-                            </button>
-                            <button type="button" class="btn btn-danger btn-large btn-full" id="btnPause" disabled>
-                                <span class="btn-icon">⏸</span> 일시정지 (Pause)
-                            </button>
-                            <div class="log-save-buttons-row">
-                                <button type="button" class="btn btn-success btn-full" id="btnSaveLogAll" disabled>
-                                    <span class="btn-icon">💾</span> 전체 저장
-                                </button>
-                                <button type="button" class="btn btn-warning btn-full" id="btnSaveLogFail" disabled>
-                                    <span class="btn-icon">🚨</span> 이상제품 저장
-                                </button>
-                            </div>
-                            <button type="button" class="btn btn-secondary btn-large btn-full" id="btnReset">
-                                <span class="btn-icon">🔄</span> 초기화 (Reset)
-                            </button>
-                        </div>
-                        <div class="progress-status-container" style="margin-top: 15px;">
-                            <div class="progress-status-label" id="progressLabel">공정 대기 중</div>
-                            <div class="progress-bar-bg">
-                                <div class="progress-bar-fill" id="progressBarFill" style="width: 0%;"></div>
-                            </div>
-                        </div>
-                    </div>
-                </section>
+                <!-- Simulation Controls (Moved to middle column, removed from left) -->
             </div>
 
-            <!-- Middle Column: Scenario Distribution, Yield Summary, & Status Display -->
+            <!-- Middle Column: Scenario Controls, Yield Summary, & Controls -->
             <div class="middle-column">
                 
                 <!-- FOUP Scenario Controls -->
@@ -231,19 +199,38 @@
                     </div>
                 </section>
 
-                <!-- Status Display -->
-                <section class="card status-display-card">
+                <!-- Simulation Controls (Moved here and reformatted to 2 rows of buttons) -->
+                <section class="card controls-card">
                     <div class="card-header">
-                        <h2>상태 표시 (Status Display)</h2>
+                        <h2>공정 제어 (Controls)</h2>
                     </div>
-                    <div class="card-body status-center">
-                        <div class="status-title">현재 상태</div>
-                        <div class="status-badge ready" id="statusBadge">
-                            <span class="badge-text">READY</span>
-                            <span class="badge-icon">⏳</span>
+                    <div class="card-body controls-body">
+                        <div class="control-actions-grid-custom">
+                            <div class="control-row-1">
+                                <button type="button" class="btn btn-primary btn-large btn-full" id="btnSimulate">
+                                    <span class="btn-icon">▶</span> 시뮬레이션 실행 (Simulate)
+                                </button>
+                                <button type="button" class="btn btn-danger btn-large btn-full" id="btnPause" disabled>
+                                    <span class="btn-icon">⏸</span> 일시정지 (Pause)
+                                </button>
+                            </div>
+                            <div class="control-row-2">
+                                <button type="button" class="btn btn-success btn-full" id="btnSaveLogAll" disabled>
+                                    <span class="btn-icon">💾</span> 전체 저장
+                                </button>
+                                <button type="button" class="btn btn-warning btn-full" id="btnSaveLogFail" disabled>
+                                    <span class="btn-icon">🚨</span> 이상제품 저장
+                                </button>
+                                <button type="button" class="btn btn-secondary btn-full" id="btnReset">
+                                    <span class="btn-icon">🔄</span> 초기화 (Reset)
+                                </button>
+                            </div>
                         </div>
-                        <div class="status-explanation" id="statusExplanation">
-                            공정 대기 중입니다. 공정 조건을 설정한 후 시작 버튼을 누르세요.
+                        <div class="progress-status-container" style="margin-top: 15px;">
+                            <div class="progress-status-label" id="progressLabel">공정 대기 중</div>
+                            <div class="progress-bar-bg">
+                                <div class="progress-bar-fill" id="progressBarFill" style="width: 0%;"></div>
+                            </div>
                         </div>
                     </div>
                 </section>
@@ -286,38 +273,64 @@
                 </div>
             </section>
 
+            <!-- Log Area (Moved inside main grid row 2) -->
+            <section class="card log-card">
+                <div class="card-header log-header-split">
+                    <h2>로그 (Log)</h2>
+                    <div class="log-search-toolbar">
+                        <div class="search-group range-group">
+                            <label>구간 검색:</label>
+                            <input type="number" id="searchWaferMin" placeholder="Min" class="search-input input-small">
+                            <span>~</span>
+                            <input type="number" id="searchWaferMax" placeholder="Max" class="search-input input-small">
+                        </div>
+                        <div class="search-group text-group">
+                            <select id="searchColumn" class="search-select">
+                                <option value="all">전체 컬럼</option>
+                                <option value="time">Time</option>
+                                <option value="pressure">Pressure</option>
+                                <option value="platen">Platen</option>
+                                <option value="carrier">Carrier</option>
+                                <option value="slurry">Slurry</option>
+                                <option value="condP">Cond P</option>
+                                <option value="condS">Cond S</option>
+                                <option value="timeSec">Time (sec)</option>
+                                <option value="temp">Temp</option>
+                                <option value="rr">RR</option>
+                                <option value="uniformity">Uniform</option>
+                                <option value="status">Status</option>
+                            </select>
+                            <input type="text" id="searchText" placeholder="검색어 입력" class="search-input">
+                            <button type="button" class="btn btn-primary btn-search" id="btnSearch">검색</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body log-table-container">
+                    <table class="log-table" id="logTable">
+                        <thead>
+                            <tr>
+                                <th>Wafer No.</th>
+                                <th>Time</th>
+                                <th>Pressure (psi)</th>
+                                <th>Platen (rpm)</th>
+                                <th>Carrier (rpm)</th>
+                                <th>Slurry (mL/min)</th>
+                                <th>Cond P (psi)</th>
+                                <th>Cond S (rpm)</th>
+                                <th>Time (sec)</th>
+                                <th>Temp (°C)</th>
+                                <th>RR (Å/min)</th>
+                                <th>Uniform (%)</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="logTableBody">
+                            <!-- Log items added dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
         </main>
-
-        <!-- Log Area -->
-        <section class="card log-card">
-            <div class="card-header">
-                <h2>로그 (Log)</h2>
-            </div>
-            <div class="card-body log-table-container">
-                <table class="log-table" id="logTable">
-                    <thead>
-                        <tr>
-                            <th>Wafer No.</th>
-                            <th>Time</th>
-                            <th>Pressure (psi)</th>
-                            <th>Platen (rpm)</th>
-                            <th>Carrier (rpm)</th>
-                            <th>Slurry (mL/min)</th>
-                            <th>Cond P (psi)</th>
-                            <th>Cond S (rpm)</th>
-                            <th>Time (sec)</th>
-                            <th>Temp (°C)</th>
-                            <th>RR (Å/min)</th>
-                            <th>Uniform (%)</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody id="logTableBody">
-                        <!-- Log items added dynamically -->
-                    </tbody>
-                </table>
-            </div>
-        </section>
 
         <!-- Instructions Footer -->
         <footer class="control-bar-card">
