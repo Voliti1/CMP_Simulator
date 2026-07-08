@@ -295,7 +295,7 @@ function drawChart() {
     }
     
     // Vertical lines (based on totalWafers in FOUP)
-    const tMax = els && els.distTotalWafers ? (parseInt(els.distTotalWafers.value) || 25) : 25;
+    const tMax = els && els.distTotalWafers ? (parseInt(els.distTotalWafers.value) || 10000) : 10000;
     
     // Choose step size dynamically based on tMax to avoid label clutter
     let step = 5;
@@ -607,11 +607,11 @@ function getStatusDescription(status) {
 // Validation for distribution percentages
 // Validation for total wafers
 function validateDistribution() {
-    const totalWafers = parseInt(els.distTotalWafers.value) || 25;
+    const totalWafers = parseInt(els.distTotalWafers.value) || 10000;
     
-    // Clamp totalWafers to [1, 10000]
+    // Clamp totalWafers to [1, 50000]
     if (totalWafers < 1) els.distTotalWafers.value = 1;
-    if (totalWafers > 10000) els.distTotalWafers.value = 10000;
+    if (totalWafers > 50000) els.distTotalWafers.value = 50000;
     
     els.summaryTotal.textContent = els.distTotalWafers.value;
     els.btnSimulate.disabled = false;
@@ -901,7 +901,7 @@ function startSimulation() {
     };
     
     // Generate the Wafers Batch based on selected activeScenarioIndex
-    const totalWafers = parseInt(els.distTotalWafers.value) || 25;
+    const totalWafers = parseInt(els.distTotalWafers.value) || 10000;
     
     waferBatch = [];
     for (let i = 0; i < totalWafers; i++) {
@@ -1467,7 +1467,7 @@ function resetUI() {
     }
     
     // Distribution inputs reset
-    els.distTotalWafers.value = 25;
+    els.distTotalWafers.value = 10000;
     validateDistribution();
     
     // Outputs reset
@@ -1482,7 +1482,7 @@ function resetUI() {
     drawChart();
     
     // Yield summary reset
-    els.summaryTotal.textContent = '25';
+    els.summaryTotal.textContent = '10000';
     els.summaryGood.textContent = '0';
     els.summaryBad.textContent = '0';
     els.summaryYield.textContent = '0.0%';
