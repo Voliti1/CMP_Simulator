@@ -470,8 +470,9 @@ function simulateStep(t, recipe, scenario) {
         condSpeed *= startupRatio;
     }
     
-    // 1. Temperature model (base heat + friction + cooling)
-    let tempTarget = 24.4 + (p * 3.2) + (platenSpeed * 0.06 + carrierSpeed * 0.02) - (slurryFlow * 0.04);
+    // 1. Temperature model (base heat + friction + cooling + noise)
+    const tempNoise = (Math.random() - 0.5) * 0.3; // +/- 0.15°C variation
+    let tempTarget = 24.4 + (p * 3.2) + (platenSpeed * 0.05 + carrierSpeed * 0.015) + (condSpeed * 0.04 * condPressure) - (slurryFlow * 0.04) + tempNoise;
     if (slurryFlow < 150.0 && t > 10) {
         tempTarget += (150.0 - slurryFlow) * 0.08;
     }
@@ -483,7 +484,7 @@ function simulateStep(t, recipe, scenario) {
     
     simulatedOutputs.temp += (targetTemp - simulatedOutputs.temp) * 0.2;
     
-    // 2. Removal Rate model (with saturation at high pressure)
+    // 2. Removal Rate model (with saturation at high pressure + noise)
     const pressureFactor = p <= 4.0 ? p : (4.0 + (p - 4.0) * 0.35);
     
     let slurryMultiplier = slurryFlow >= 200.0 ? 1.0 : (0.7 + 0.3 * (slurryFlow - 100.0) / 100.0);
@@ -494,16 +495,18 @@ function simulateStep(t, recipe, scenario) {
     let conditionerMultiplier = conditioningPower >= 1.0 ? 1.0 : (0.85 + 0.15 * conditioningPower);
     if (conditioningPower < 0.4) conditionerMultiplier = 0.85 * (conditioningPower / 0.4);
     
-    let targetRR = (pressureFactor * (platenSpeed * 0.7 + carrierSpeed * 0.3) * 10.0) * slurryMultiplier * conditionerMultiplier;
+    const rrNoise = (Math.random() - 0.5) * 40; // +/- 20 A/min variation
+    let targetRR = (pressureFactor * (platenSpeed * 0.7 + carrierSpeed * 0.3) * 10.0) * slurryMultiplier * conditionerMultiplier + rrNoise;
     if (t > 10) {
         targetRR += (slurryFlow * 0.25);
     }
     
     simulatedOutputs.rr += (targetRR - simulatedOutputs.rr) * 0.25;
     
-    // 3. Uniformity model
+    // 3. Uniformity model (including low pressure & high speed penalties + organic noise)
     const uniformityBase = 98.3;
     const pressurePenalty = p > 3.5 ? (p - 3.5) * 2.33 : 0.0;
+    const pressureLowPenalty = p < 3.5 ? (3.5 - p) * 0.8 : 0.0;
     const slurryPenalty = slurryFlow < 200.0 ? (200.0 - slurryFlow) * 0.038 : 0.0;
     const conditionerPenalty = condSpeed < 80.0 ? (80.0 - condSpeed) * 0.045 : 0.0;
     const condPressurePenalty = condPressure > 4.5 ? (condPressure - 4.5) * 1.5 : 0.0;
@@ -511,8 +514,11 @@ function simulateStep(t, recipe, scenario) {
     const speedMismatchPenalty = Math.abs(platenSpeed - carrierSpeed) > 10
         ? (Math.abs(platenSpeed - carrierSpeed) - 10) * 0.05
         : 0.0;
+    const speedHighPenalty = platenSpeed > 80 ? (platenSpeed - 80) * 0.04 : 0.0;
     
-    let targetUniformity = uniformityBase - pressurePenalty - slurryPenalty - conditionerPenalty - condPressurePenalty - condPressureLowPenalty - speedMismatchPenalty;
+    const unifNoise = (Math.random() - 0.5) * 0.25; // +/- 0.125% organic noise
+    
+    let targetUniformity = uniformityBase - pressurePenalty - pressureLowPenalty - slurryPenalty - conditionerPenalty - condPressurePenalty - condPressureLowPenalty - speedMismatchPenalty - speedHighPenalty + unifNoise;
     if (targetUniformity > 99.5) targetUniformity = 99.5;
     if (targetUniformity < 50.0) targetUniformity = 50.0;
     
@@ -677,8 +683,9 @@ function simulateWaferInstantly(recipe, scenarioIndex) {
         finalInputs.condPressure = condPressure;
         finalInputs.condSpeed = condSpeed;
         
-        // 1. Temperature model (base heat + friction + cooling)
-        let tempTarget = 24.4 + (p * 3.2) + (platenSpeed * 0.06 + carrierSpeed * 0.02) - (slurryFlow * 0.04);
+        // 1. Temperature model (base heat + friction + cooling + noise)
+        const tempNoise = (Math.random() - 0.5) * 0.3; // +/- 0.15°C variation
+        let tempTarget = 24.4 + (p * 3.2) + (platenSpeed * 0.05 + carrierSpeed * 0.015) + (condSpeed * 0.04 * condPressure) - (slurryFlow * 0.04) + tempNoise;
         if (slurryFlow < 150.0 && t > 10) {
             tempTarget += (150.0 - slurryFlow) * 0.08;
         }
@@ -689,7 +696,7 @@ function simulateWaferInstantly(recipe, scenarioIndex) {
         
         temp += (targetTemp - temp) * 0.2;
         
-        // 2. Removal Rate model (with saturation at high pressure)
+        // 2. Removal Rate model (with saturation at high pressure + noise)
         const pressureFactor = p <= 4.0 ? p : (4.0 + (p - 4.0) * 0.35);
         
         let slurryMultiplier = slurryFlow >= 200.0 ? 1.0 : (0.7 + 0.3 * (slurryFlow - 100.0) / 100.0);
@@ -700,16 +707,18 @@ function simulateWaferInstantly(recipe, scenarioIndex) {
         let conditionerMultiplier = conditioningPower >= 1.0 ? 1.0 : (0.85 + 0.15 * conditioningPower);
         if (conditioningPower < 0.4) conditionerMultiplier = 0.85 * (conditioningPower / 0.4);
         
-        let targetRR = (pressureFactor * (platenSpeed * 0.7 + carrierSpeed * 0.3) * 10.0) * slurryMultiplier * conditionerMultiplier;
+        const rrNoise = (Math.random() - 0.5) * 40; // +/- 20 A/min variation
+        let targetRR = (pressureFactor * (platenSpeed * 0.7 + carrierSpeed * 0.3) * 10.0) * slurryMultiplier * conditionerMultiplier + rrNoise;
         if (t > 10) {
             targetRR += (slurryFlow * 0.25);
         }
         
         rr += (targetRR - rr) * 0.25;
         
-        // 3. Uniformity model
+        // 3. Uniformity model (including low pressure & high speed penalties + organic noise)
         const uniformityBase = 98.3;
         const pressurePenalty = p > 3.5 ? (p - 3.5) * 2.33 : 0.0;
+        const pressureLowPenalty = p < 3.5 ? (3.5 - p) * 0.8 : 0.0;
         const slurryPenalty = slurryFlow < 200.0 ? (200.0 - slurryFlow) * 0.038 : 0.0;
         const conditionerPenalty = condSpeed < 80.0 ? (80.0 - condSpeed) * 0.045 : 0.0;
         const condPressurePenalty = condPressure > 4.5 ? (condPressure - 4.5) * 1.5 : 0.0;
@@ -717,8 +726,11 @@ function simulateWaferInstantly(recipe, scenarioIndex) {
         const speedMismatchPenalty = Math.abs(platenSpeed - carrierSpeed) > 10
             ? (Math.abs(platenSpeed - carrierSpeed) - 10) * 0.05
             : 0.0;
+        const speedHighPenalty = platenSpeed > 80 ? (platenSpeed - 80) * 0.04 : 0.0;
         
-        let targetUniformity = uniformityBase - pressurePenalty - slurryPenalty - conditionerPenalty - condPressurePenalty - condPressureLowPenalty - speedMismatchPenalty;
+        const unifNoise = (Math.random() - 0.5) * 0.25; // +/- 0.125% organic noise
+        
+        let targetUniformity = uniformityBase - pressurePenalty - pressureLowPenalty - slurryPenalty - conditionerPenalty - condPressurePenalty - condPressureLowPenalty - speedMismatchPenalty - speedHighPenalty + unifNoise;
         if (targetUniformity > 99.5) targetUniformity = 99.5;
         if (targetUniformity < 50.0) targetUniformity = 50.0;
         
