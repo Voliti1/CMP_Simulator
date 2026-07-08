@@ -35,8 +35,8 @@
                         <form id="recipeForm" onsubmit="event.preventDefault();">
                             <div class="input-group">
                                 <label for="carrierPressure">
-                                    <span>Carrier Pressure <span class="sub-label">캐리어 가압력</span></span>
-                                    <span class="range-info">정상: 2.0 ~ 6.0</span>
+                                    <span>Carrier Pressure</span>
+                                    <span class="range-info">제어 범위: 2.7 ~ 5.3 (설비 스펙: 2.0 ~ 6.0)</span>
                                 </label>
                                 <div class="input-wrapper">
                                     <input type="number" id="carrierPressure" step="0.1" min="1.0" max="10.0" value="3.5">
@@ -46,8 +46,8 @@
 
                             <div class="input-group">
                                 <label for="platenSpeed">
-                                    <span>Platen Speed <span class="sub-label">플래튼 회전속도</span></span>
-                                    <span class="range-info">정상: 30 ~ 120</span>
+                                    <span>Platen Speed</span>
+                                    <span class="range-info">제어 범위: 44 ~ 106 (설비 스펙: 30 ~ 120)</span>
                                 </label>
                                 <div class="input-wrapper">
                                     <input type="number" id="platenSpeed" step="1" min="10" max="200" value="60">
@@ -57,8 +57,8 @@
 
                             <div class="input-group">
                                 <label for="carrierSpeed">
-                                    <span>Carrier Speed <span class="sub-label">캐리어 회전속도</span></span>
-                                    <span class="range-info">정상: 30 ~ 120</span>
+                                    <span>Carrier Speed</span>
+                                    <span class="range-info">제어 범위: 44 ~ 106 (설비 스펙: 30 ~ 120)</span>
                                 </label>
                                 <div class="input-wrapper">
                                     <input type="number" id="carrierSpeed" step="1" min="10" max="200" value="60">
@@ -68,8 +68,8 @@
 
                             <div class="input-group">
                                 <label for="slurryFlow">
-                                    <span>Slurry Flow Rate <span class="sub-label">슬러리 공급량</span></span>
-                                    <span class="range-info">정상: 100 ~ 300</span>
+                                    <span>Slurry Flow Rate</span>
+                                    <span class="range-info">제어 범위: 131 ~ 269 (설비 스펙: 100 ~ 300)</span>
                                 </label>
                                 <div class="input-wrapper">
                                     <input type="number" id="slurryFlow" step="1" min="50" max="500" value="200">
@@ -79,8 +79,8 @@
 
                             <div class="input-group">
                                 <label for="condPressure">
-                                    <span>Conditioner Pressure <span class="sub-label">컨디셔너 가압력</span></span>
-                                    <span class="range-info">정상: 2.0 ~ 6.0</span>
+                                    <span>Conditioner Pressure</span>
+                                    <span class="range-info">제어 범위: 2.7 ~ 5.3 (설비 스펙: 2.0 ~ 6.0)</span>
                                 </label>
                                 <div class="input-wrapper">
                                     <input type="number" id="condPressure" step="0.1" min="1.0" max="10.0" value="3.0">
@@ -90,8 +90,8 @@
 
                             <div class="input-group">
                                 <label for="condSpeed">
-                                    <span>Conditioner Speed <span class="sub-label">컨디셔너 회전속도</span></span>
-                                    <span class="range-info">정상: 40 ~ 120</span>
+                                    <span>Conditioner Speed</span>
+                                    <span class="range-info">제어 범위: 53 ~ 107 (설비 스펙: 40 ~ 120)</span>
                                 </label>
                                 <div class="input-wrapper">
                                     <input type="number" id="condSpeed" step="1" min="20" max="200" value="80">
@@ -101,8 +101,8 @@
 
                             <div class="input-group">
                                 <label for="polishTime">
-                                    <span>Polish Time <span class="sub-label">연마 시간</span></span>
-                                    <span class="range-info">정상: 30 ~ 120</span>
+                                    <span>Polish Time</span>
+                                    <span class="range-info">제어 범위: 30 ~ 120 (설비 스펙: 30 ~ 120)</span>
                                 </label>
                                 <div class="input-wrapper">
                                     <input type="number" id="polishTime" step="1" min="10" max="300" value="60">
@@ -328,20 +328,20 @@
     <div class="modal-overlay" id="rangeModal">
         <div class="modal">
             <div class="modal-header">
-                <h2>CMP 설비 정상 매개변수 범위 정보</h2>
+                <h2>CMP 설비 매개변수 가동 사양 및 한계 정보</h2>
                 <button class="close-modal" id="btnCloseModal">&times;</button>
             </div>
             <div class="modal-body">
                 <div class="modal-section">
-                    <h3>1. 입력 조건 (Input Ranges)</h3>
+                    <h3>1. 입력 조건 사양 (Input Parameter Specs)</h3>
                     <ul>
-                        <li><strong>Carrier Pressure (캐리어 가압력):</strong> 2.0 ~ 6.0 psi</li>
-                        <li><strong>Platen Speed (플래튼 회전속도):</strong> 30 ~ 120 rpm</li>
-                        <li><strong>Carrier Speed (캐리어 회전속도):</strong> 30 ~ 120 rpm</li>
-                        <li><strong>Slurry Flow Rate (슬러리 공급량):</strong> 100 ~ 300 mL/min</li>
-                        <li><strong>Conditioner Pressure (컨디셔너 가압력):</strong> 2.0 ~ 6.0 psi</li>
-                        <li><strong>Conditioner Speed (컨디셔너 회전속도):</strong> 40 ~ 120 rpm</li>
-                        <li><strong>Polish Time (연마 시간):</strong> 30 ~ 120 sec</li>
+                        <li><strong>Carrier Pressure:</strong> 제어 범위 2.7 ~ 5.3 psi (설비 스펙: 2.0 ~ 6.0)</li>
+                        <li><strong>Platen Speed:</strong> 제어 범위 44 ~ 106 rpm (설비 스펙: 30 ~ 120)</li>
+                        <li><strong>Carrier Speed:</strong> 제어 범위 44 ~ 106 rpm (설비 스펙: 30 ~ 120)</li>
+                        <li><strong>Slurry Flow Rate:</strong> 제어 범위 131 ~ 269 mL/min (설비 스펙: 100 ~ 300)</li>
+                        <li><strong>Conditioner Pressure:</strong> 제어 범위 2.7 ~ 5.3 psi (설비 스펙: 2.0 ~ 6.0)</li>
+                        <li><strong>Conditioner Speed:</strong> 제어 범위 53 ~ 107 rpm (설비 스펙: 40 ~ 120)</li>
+                        <li><strong>Polish Time:</strong> 제어 범위 30 ~ 120 sec (설비 스펙: 30 ~ 120)</li>
                     </ul>
                 </div>
                 <div class="modal-section">
@@ -366,7 +366,7 @@
                             <p class="danger"><strong>DANGER:</strong> 95% 미만</p>
                         </div>
                     </div>
-                    <p class="note-text">※ 최종 판정은 출력값 중 가장 위험도가 높은 단계를 따릅니다.</p>
+                    <p class="note-text">※ 최종 판정은 출력값 중 가장 위험도가 높은 단계를 따릅니다. 개별 입력값이 권장 사양 내에 있더라도 극단적인 조합이나 시나리오에 따라 최종 공정 결과(온도/연마율/균일도)에서 불량이 발생할 수 있습니다.</p>
                 </div>
             </div>
             <div class="modal-footer">
