@@ -1025,13 +1025,7 @@ function runSimulationLoop() {
             // Perform simulation step
             const currentInputs = simulateStep(currentTime, simulatedRecipe, activeScenario);
             
-            // Update input readouts in UI dynamically to show the changing wafer state
-            updateNumericInputSilently(els.slurryFlow, currentInputs.slurryFlow);
-            if (els.slurryFlowSlider) els.slurryFlowSlider.value = currentInputs.slurryFlow;
-            updateNumericInputSilently(els.condSpeed, currentInputs.condSpeed);
-            if (els.condSpeedSlider) els.condSpeedSlider.value = currentInputs.condSpeed;
-            updateNumericInputSilently(els.carrierPressure, currentInputs.carrierPressure);
-            if (els.carrierPressureSlider) els.carrierPressureSlider.value = currentInputs.carrierPressure;
+
             
             // Update output readouts in UI
             els.resTemp.textContent = simulatedOutputs.temp.toFixed(1);
@@ -1101,13 +1095,7 @@ function runSimulationLoop() {
                     // Assign currently selected activeScenarioIndex to the next wafer starting
                     waferBatch[currentWaferIdx].scenarioIndex = activeScenarioIndex;
                     
-                    // Reset inputs UI back to baseline recipe values for next wafer start
-                    updateNumericInputSilently(els.slurryFlow, simulatedRecipe.slurryFlow);
-                    if (els.slurryFlowSlider) els.slurryFlowSlider.value = simulatedRecipe.slurryFlow;
-                    updateNumericInputSilently(els.condSpeed, simulatedRecipe.condSpeed);
-                    if (els.condSpeedSlider) els.condSpeedSlider.value = simulatedRecipe.condSpeed;
-                    updateNumericInputSilently(els.carrierPressure, simulatedRecipe.carrierPressure);
-                    if (els.carrierPressureSlider) els.carrierPressureSlider.value = simulatedRecipe.carrierPressure;
+
                 } else {
                     // FOUP Completed!
                     stopSimulation(false);
@@ -1171,12 +1159,7 @@ function runSimulationLoop() {
                     els.resRR.textContent = Math.round(lastOutput.rr).toLocaleString();
                     targetGaugeValue = lastOutput.uniformity;
                     
-                    updateNumericInputSilently(els.slurryFlow, lastInputs.slurryFlow);
-                    if (els.slurryFlowSlider) els.slurryFlowSlider.value = Math.round(lastInputs.slurryFlow);
-                    updateNumericInputSilently(els.condSpeed, lastInputs.condSpeed);
-                    if (els.condSpeedSlider) els.condSpeedSlider.value = Math.round(lastInputs.condSpeed);
-                    updateNumericInputSilently(els.carrierPressure, lastInputs.carrierPressure);
-                    if (els.carrierPressureSlider) els.carrierPressureSlider.value = lastInputs.carrierPressure.toFixed(1);
+
                 }
                 
                 yieldPct = (goodCount / currentWaferIdx) * 100;
