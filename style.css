@@ -537,6 +537,8 @@ canvas {
 
 .log-table-container {
     overflow-y: auto;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
     padding: 0;
 }
 
@@ -1013,6 +1015,72 @@ canvas {
 .recipe-input-card .btn-full {
     padding: 6px 12px !important;
     font-size: 12px !important;
+}
+
+/* Mobile Responsive Overrides */
+@media (max-width: 600px) {
+    body {
+        padding: 10px;
+    }
+    
+    .app-header {
+        flex-direction: column;
+        gap: 10px;
+        text-align: center;
+        padding: 12px 15px;
+    }
+    
+    .logo-area {
+        justify-content: center;
+    }
+    
+    .card-header {
+        padding: 12px 15px;
+    }
+    
+    .card-body {
+        padding: 15px;
+    }
+    
+    .visualizers-container {
+        gap: 15px;
+    }
+}
+
+@media (max-width: 480px) {
+    .yield-dashboard {
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+    }
+    
+    .yield-stat-item {
+        padding: 10px 4px;
+    }
+    
+    .status-badge {
+        width: 100%;
+        max-width: 280px;
+    }
+    
+    .distribution-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+    }
+    
+    .dist-input-group label {
+        font-size: 10px;
+    }
+    
+    .dist-input {
+        padding: 6px 8px;
+        font-size: 12px;
+    }
+    
+    .distribution-total-bar {
+        flex-direction: column;
+        gap: 6px;
+        text-align: center;
+    }
 }
 
 
