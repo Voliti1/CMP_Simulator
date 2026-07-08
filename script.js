@@ -1444,6 +1444,13 @@ els.btnReset.addEventListener('click', () => {
 });
 
 function resetUI() {
+    // Stop any active simulation loop and reset state flags
+    clearInterval(simulationInterval);
+    isSimulating = false;
+    isPaused = false;
+    currentWaferIdx = 0;
+    currentTime = 0;
+    
     // Inputs reset
     els.carrierPressure.value = 3.5;
     if (els.carrierPressureSlider) els.carrierPressureSlider.value = 3.5;
