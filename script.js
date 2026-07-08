@@ -1103,8 +1103,8 @@ function runSimulationLoop() {
             }
         }, 10);
     } else {
-        // High-speed simulation mode running at 100 wafers per second (1 wafer per 10ms tick)
-        const wafersPerTick = 1;
+        // High-speed simulation mode running at 500 wafers per second (5 wafers per 10ms tick)
+        const wafersPerTick = 5;
         let lastUiUpdateTime = 0;
         
         simulationInterval = setInterval(() => {
