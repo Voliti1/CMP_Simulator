@@ -355,14 +355,16 @@ function drawChart() {
         ctxChart.lineWidth = 1.8;
         ctxChart.stroke();
         
-        // 1b. Draw little circles at each point for visibility
-        chartData.forEach((d) => {
-            const normY = Math.max(0, Math.min(1, (d.temp - 20) / 40));
-            ctxChart.beginPath();
-            ctxChart.arc(getX(d.t), getY(normY), 2.5, 0, 2 * Math.PI);
-            ctxChart.fillStyle = tempColor;
-            ctxChart.fill();
-        });
+        // 1b. Draw little circles at each point for visibility (only if few points)
+        if (chartData.length <= 150) {
+            chartData.forEach((d) => {
+                const normY = Math.max(0, Math.min(1, (d.temp - 20) / 40));
+                ctxChart.beginPath();
+                ctxChart.arc(getX(d.t), getY(normY), 2.5, 0, 2 * Math.PI);
+                ctxChart.fillStyle = tempColor;
+                ctxChart.fill();
+            });
+        }
         
         // 2. Plot Removal Rate
         ctxChart.beginPath();
@@ -377,14 +379,16 @@ function drawChart() {
         ctxChart.lineWidth = 1.8;
         ctxChart.stroke();
         
-        // 2b. Draw circles
-        chartData.forEach((d) => {
-            const normY = Math.max(0, Math.min(1, d.rr / 4000));
-            ctxChart.beginPath();
-            ctxChart.arc(getX(d.t), getY(normY), 2.5, 0, 2 * Math.PI);
-            ctxChart.fillStyle = rrColor;
-            ctxChart.fill();
-        });
+        // 2b. Draw circles (only if few points)
+        if (chartData.length <= 150) {
+            chartData.forEach((d) => {
+                const normY = Math.max(0, Math.min(1, d.rr / 4000));
+                ctxChart.beginPath();
+                ctxChart.arc(getX(d.t), getY(normY), 2.5, 0, 2 * Math.PI);
+                ctxChart.fillStyle = rrColor;
+                ctxChart.fill();
+            });
+        }
         
         // 3. Plot Uniformity
         ctxChart.beginPath();
@@ -399,14 +403,16 @@ function drawChart() {
         ctxChart.lineWidth = 1.8;
         ctxChart.stroke();
         
-        // 3b. Draw circles
-        chartData.forEach((d) => {
-            const normY = Math.max(0, Math.min(1, (d.uniformity - 80) / 20));
-            ctxChart.beginPath();
-            ctxChart.arc(getX(d.t), getY(normY), 2.5, 0, 2 * Math.PI);
-            ctxChart.fillStyle = uniColor;
-            ctxChart.fill();
-        });
+        // 3b. Draw circles (only if few points)
+        if (chartData.length <= 150) {
+            chartData.forEach((d) => {
+                const normY = Math.max(0, Math.min(1, (d.uniformity - 80) / 20));
+                ctxChart.beginPath();
+                ctxChart.arc(getX(d.t), getY(normY), 2.5, 0, 2 * Math.PI);
+                ctxChart.fillStyle = uniColor;
+                ctxChart.fill();
+            });
+        }
     }
     
     // Draw Legends at the top
@@ -1007,6 +1013,7 @@ function pauseSimulation() {
         els.progressLabel.style.color = 'var(--color-warning)';
         
         updateControlButtonsUI();
+        renderLogTable(true);
     }
 }
 
@@ -1228,7 +1235,6 @@ function stopSimulation(aborted) {
         
         if (logHistory.length > 0) {
             logHistory[logHistory.length - 1].status = StatusLevel.DANGER;
-            renderLogTable();
         }
     } else {
         // Normal completion
@@ -1254,6 +1260,8 @@ function stopSimulation(aborted) {
         
         updateStatusDisplay(finalStatus, explanation);
     }
+    
+    renderLogTable(true);
 }
 
 function updateStatusDisplay(status, explanation) {
@@ -1318,7 +1326,7 @@ function addLogEntry(waferNo, recipe, outputs, status) {
     logHistory.push(entry);
 }
 
-function renderLogTable() {
+function renderLogTable(forceAll = false) {
     els.logTableBody.innerHTML = '';
     
     let filtered = [...logHistory];
@@ -1362,10 +1370,13 @@ function renderLogTable() {
         });
     }
     
-    // Sort in reverse order (newest first) and render ALL logs
+    // Sort in reverse order (newest first)
     const reversed = filtered.reverse();
     
-    for (let i = 0; i < reversed.length; i++) {
+    const isRunning = isSimulating && !isPaused;
+    const maxToRender = (isRunning && !forceAll) ? Math.min(reversed.length, 100) : reversed.length;
+    
+    for (let i = 0; i < maxToRender; i++) {
         const e = reversed[i];
         const tr = document.createElement('tr');
         
@@ -1387,6 +1398,16 @@ function renderLogTable() {
             <td>${e.rr.toLocaleString()}</td>
             <td>${e.uniformity}</td>
             <td class="log-status-cell ${statusClass}">${e.status}</td>
+        `;
+        els.logTableBody.appendChild(tr);
+    }
+    
+    if (isRunning && !forceAll && reversed.length > 100) {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td colspan="13" style="text-align: center; color: var(--text-muted); font-size: 11px; padding: 10px; background-color: rgba(0, 0, 0, 0.15); font-weight: bold;">
+                ※ 시뮬레이션 가동 중에는 성능을 위해 최신 100개의 로그만 실시간 표시됩니다. (공정 일시정지 또는 완료 시 전체 로그가 자동 출력됩니다.)
+            </td>
         `;
         els.logTableBody.appendChild(tr);
     }
