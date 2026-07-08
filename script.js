@@ -778,6 +778,15 @@ const scenarioButtons = [
     { btn: els.btnScenarioPressure, val: 3 }
 ];
 
+function updateInputAndSlider(inputEl, sliderEl, value, isFloat) {
+    if (inputEl) {
+        inputEl.value = isFloat ? value.toFixed(1) : value;
+    }
+    if (sliderEl) {
+        sliderEl.value = value;
+    }
+}
+
 scenarioButtons.forEach(item => {
     if (item.btn) {
         item.btn.addEventListener('click', () => {
@@ -788,6 +797,48 @@ scenarioButtons.forEach(item => {
             
             // Set global active scenario index
             activeScenarioIndex = item.val;
+            
+            // Update inputs and sliders according to the selected scenario
+            if (activeScenarioIndex === 0) {
+                // Normal values
+                updateInputAndSlider(els.carrierPressure, els.carrierPressureSlider, 3.5, true);
+                updateInputAndSlider(els.platenSpeed, els.platenSpeedSlider, 60, false);
+                updateInputAndSlider(els.carrierSpeed, els.carrierSpeedSlider, 60, false);
+                updateInputAndSlider(els.slurryFlow, els.slurryFlowSlider, 200, false);
+                updateInputAndSlider(els.condPressure, els.condPressureSlider, 3.0, true);
+                updateInputAndSlider(els.condSpeed, els.condSpeedSlider, 80, false);
+                updateInputAndSlider(els.polishTime, els.polishTimeSlider, 60, false);
+            } else if (activeScenarioIndex === 1) {
+                // Slurry Warning values
+                updateInputAndSlider(els.carrierPressure, els.carrierPressureSlider, 3.5, true);
+                updateInputAndSlider(els.platenSpeed, els.platenSpeedSlider, 60, false);
+                updateInputAndSlider(els.carrierSpeed, els.carrierSpeedSlider, 60, false);
+                updateInputAndSlider(els.slurryFlow, els.slurryFlowSlider, 130, false); // Slurry drop target
+                updateInputAndSlider(els.condPressure, els.condPressureSlider, 3.0, true);
+                updateInputAndSlider(els.condSpeed, els.condSpeedSlider, 80, false);
+                updateInputAndSlider(els.polishTime, els.polishTimeSlider, 60, false);
+            } else if (activeScenarioIndex === 2) {
+                // Conditioner Warning values
+                updateInputAndSlider(els.carrierPressure, els.carrierPressureSlider, 3.5, true);
+                updateInputAndSlider(els.platenSpeed, els.platenSpeedSlider, 60, false);
+                updateInputAndSlider(els.carrierSpeed, els.carrierSpeedSlider, 60, false);
+                updateInputAndSlider(els.slurryFlow, els.slurryFlowSlider, 200, false);
+                updateInputAndSlider(els.condPressure, els.condPressureSlider, 3.0, true);
+                updateInputAndSlider(els.condSpeed, els.condSpeedSlider, 40, false); // Conditioner speed drop target
+                updateInputAndSlider(els.polishTime, els.polishTimeSlider, 60, false);
+            } else if (activeScenarioIndex === 3) {
+                // Carrier Pressure Danger values
+                updateInputAndSlider(els.carrierPressure, els.carrierPressureSlider, 6.5, true); // Carrier pressure rise target
+                updateInputAndSlider(els.platenSpeed, els.platenSpeedSlider, 60, false);
+                updateInputAndSlider(els.carrierSpeed, els.carrierSpeedSlider, 60, false);
+                updateInputAndSlider(els.slurryFlow, els.slurryFlowSlider, 200, false);
+                updateInputAndSlider(els.condPressure, els.condPressureSlider, 3.0, true);
+                updateInputAndSlider(els.condSpeed, els.condSpeedSlider, 80, false);
+                updateInputAndSlider(els.polishTime, els.polishTimeSlider, 60, false);
+            }
+            
+            // Sync current simulatedRecipe in memory
+            updateRecipeFromUI();
             
             // If simulation is running, update the current wafer's scenario index in real-time
             if (isSimulating) {
